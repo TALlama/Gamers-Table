@@ -1,6 +1,8 @@
 ## What is it? ##
 
-Gamer's Table is a virtual table around which you and your friends can play games.
+Games require a lot of pieces. You need a big table to put everything out on, but it needs to be small enough that everyone can reach. You need a wide variety of pieces, but you need to get them to your game night. What if you could make the whole thing virtual?
+
+Gamer's Table is that virtual table full of pieces; it runs entirely in your browser, so it's easy to use. It's built on JavaScript and is open source, so it's easy to extend and build on. And it's free and MIT licensed, so you can use it however you want.
 
 ## Goals ##
 
