@@ -8,18 +8,15 @@ Gamer's Table is that virtual table full of pieces; it runs entirely in your bro
 
 The Gamer's Table should be able to support a wide variety of games. The initial focus is on role-playing games and their combat situations, so there are a lot of map elements and such. 
 
-But above all, the entire project is built using JavaScript, so adding new object types and new behaviors is open and easy, and combining your own objects into groups is easy, too.
+But above all, the entire project is built using JavaScript, so adding new object types and new behaviors is open and easy, and combining your own objects into groups is easy, too. Making everything scale from simple drag-pieces-around games all the way up to complex die-grouping, card-shuffling, token-trading games is the idea.
 
 ## What's Coming ##
 
-- Removing objects
-- Dice grouping
-- Object-contextual menus
-	- characters should be able to roll their own stats
-	- dice should have color options
+See the [issues tracker](http://github.com/TALlama/Gamers-Table/issues) for what's being looked at.
+
+Much longer term:
 - Card Games
-- Really long term
-	- Synchronization between tables via a central server
+- Synchronization between tables via a central server
 
 ## What's Not Coming ##
 
