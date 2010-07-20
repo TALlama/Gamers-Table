@@ -61,6 +61,26 @@ function isTouchDevice() {
 	el.setAttribute('ongesturestart', 'return;');
 	return (typeof el.ongesturestart == "function");
 }
+function isTranstionSupported() {
+	return (typeof(WebKitTransitionEvent) == 'function');
+}
+function isAnimationSupported() {
+	return (typeof(WebKitAnimationEvent) == "function");
+}
+jQuery.fn.transitionEnd = function(callback) {
+	if (isAnimationSupported()) {
+		this.bind('webkitTransitionEnd', callback);
+	} else callback();
+}
+jQuery.fn.animationEnd = function(callback) {
+	if (isAnimationSupported()) {
+		this.bind('webkitAnimationEnd', callback);
+	} else callback();
+}
+
+function lgb(msg) {
+	$('#gameboard').append("<p>" + msg + "</p>");
+}
 
 $(document).ready(function() {
 	window.addItemMenuButton = new PopupMenuButton('+', [{
@@ -119,18 +139,10 @@ var PopupMenuButton = Base.extend({
 });
 
 var PopupMenu = Base.extend({
-	constructor: function(items) {
-		this.el = $('<ul class="menu"></ul>').uniqueId();
-		this.el.prependTo($('body')[0]);
-		this.el[0].controller = this;
-
-		for (var i = 0; i < items.length; ++i) {
-			this.addMenuItem(items[i]);
-		}
-		this.addMenuItem({
-			name:'Cancel', 
-			handler: jQuery.noop
-		}).css("fontSize", "70%").css("textAlign", "right");
+	constructor: function(items, opts) {
+		var popupMenu = this;
+		this.items = items;
+		this.opts = opts || {};
 	},
 	addMenuItem: function(item) {
 		var popupMenu = this;
@@ -152,7 +164,24 @@ var PopupMenu = Base.extend({
 		
 		return itemEl;
 	},
+	makeEl: function() {
+		if (this.el) return;
+		
+		this.el = $('<ul class="menu global"></ul>').uniqueId();
+		this.el.prependTo($('body')[0]);
+		this.el[0].controller = this;
+
+		for (var i = 0; i < this.items.length; ++i) {
+			this.addMenuItem(this.items[i]);
+		}
+		this.addMenuItem({
+			name:'Cancel', 
+			handler: jQuery.noop
+		}).css("fontSize", "70%").css("textAlign", "right");
+	},
 	pop: function() {
+		this.makeEl();
+		
 		PopupMenu.hideAllExcept(this.el[0]);
 		this.el.addClass('popped');
 		KeyboardShortcuts.impose(this.shortcuts);
@@ -162,8 +191,10 @@ var PopupMenu = Base.extend({
 		
 		console.log('Unpop!');
 		KeyboardShortcuts.unimpose(this.shortcuts);
+		this.el.transitionEnd(function() {
+			this.el.remove();
+		});
 		this.el.removeClass('popped');
-		this.el.remove();
 		this.el.controller = null;
 		this.el = null;
 	},
@@ -172,20 +203,28 @@ var PopupMenu = Base.extend({
 	},
 	shortcuts: {
 		'40': function(event) {
+			event.preventDefault();
+			event.stopPropagation();
+		
 			var selected = $('.menu.popped li.selected');
 			var next = selected.length
 				? selected.next()
 				: $('.menu.popped li:nth-child(1)');
 			selected.removeClass('selected');
 			next.addClass('selected');
+			return false;
 		},
 		'38': function(event) {
+			event.preventDefault();
+			event.stopPropagation();
+		
 			var selected = $('.menu.popped li.selected');
 			var next = selected.length
 				? selected.prev()
 				: $('.menu.popped li:nth-last-child(1)');
 			selected.removeClass('selected');
 			next.addClass('selected');
+			return false;
 		},
 		'13': function(event) {
 			event.preventDefault();
@@ -196,11 +235,16 @@ var PopupMenu = Base.extend({
 				var focusable = selected[0].item.handleAndClose();
 				if (focusable && focusable.focus) focusable.focus();
 			}
+			return false;
 		},
 		'27': function() {
+			event.preventDefault();
+			event.stopPropagation();
+		
 			var selected = $('.menu.popped');
 			var controller = selected[0].controller;
 			if (controller) controller.unpop();
+			return false;
 		}
 	}
 });
@@ -210,6 +254,46 @@ PopupMenu.hideAllExcept = function(leave) {
 	});
 };
 PopupMenu.hideAll = function() {PopupMenu.hideAllExcept(null)};
+
+var ContextualMenu = PopupMenu.extend({
+	constructor: function(contextEl, items, opts) {
+		this.contextEl = contextEl;
+		this.base(items, opts);
+		jQuery.extendIf(this.opts, {
+			paddingFromContextEl: 10,
+			disappearTimeout: 3
+		})
+		
+		var cMenu = this;
+		var closeTimer = null;
+		this.contextEl.mouseover(function() {
+			if (closeTimer) {
+				clearTimeout(closeTimer);
+				closeTimer = null;
+			}
+			
+			cMenu.pop();
+		});
+		this.contextEl.mouseout(function() {
+			if (closeTimer) return;
+			
+			closeTimer = setTimeout(function() {
+				cMenu.unpop(); closeTimer = null
+			}, 1000 * cMenu.opts.disappearTimeout);
+		});
+	},
+	makeEl: function() {
+		this.base();
+		this.el.removeClass('global');
+		this.el.addClass('contextual');
+		
+		var contextOffset = this.contextEl.offset()
+		this.el.css('top', contextOffset.top);
+		this.el.css('left', contextOffset.left + 
+			this.contextEl.outerWidth() + 
+			this.opts.paddingFromContextEl)
+	},
+});
 
 var Random = {
 	intBetween: function(min, max) {
@@ -282,7 +366,16 @@ var GameObject = Base.extend({
 	tagName: 'div',
 	willAppend: function(el) {},
 	didAppend: function(el) {},
-	redraw: function() {}
+	redraw: function() {},
+	remove: function() {
+		var gameObject = this;
+		gameObject.el.fadeOut(300, function() {
+			gameObject.el.remove();
+			gameObject.el = null;
+			gameObject.didRemove();
+		})
+	},
+	didRemove: function() {}
 })
 
 var Die = GameObject.extend({
@@ -299,7 +392,7 @@ var Die = GameObject.extend({
 	didAppend: function() {
 		var die = this;
 		
-		die.el.bind('webkitAnimationEnd', function() {
+		die.el.animationEnd(function() {
 			die.el.removeClass('falling');
 		});	
 		
@@ -314,6 +407,14 @@ var Die = GameObject.extend({
 		
 		// set up the actions
 		die.el.click(function() {die.roll()});
+		
+		new ContextualMenu(die.el, [{
+			name: 'Roll',
+			handler: function() {die.roll();}
+		}, {
+			name: 'Trash',
+			handler: function() {die.remove()}
+		}], {contextEl: die.el});
 	},
 	redraw: function() {
 		this.el.text(this.lastRoll);

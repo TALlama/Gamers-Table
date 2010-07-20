@@ -137,12 +137,20 @@ header h1, header h2 {
 	z-index: 10001;
 	opacity: 0;
 	
+	background: white;
+	
+	-webkit-transition: opacity .2s ease-in-out;
+}
+
+.menu.global {
 	position: fixed;
 	top: .2em;
 	right: .2em;
-	background: white;
-	
-	-webkit-transition: opacity .5s ease-in-out;
+}
+
+.menu.contextual {
+	position: absolute;
+	width: 10em;
 }
 
 .menu.popped {
