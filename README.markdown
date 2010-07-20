@@ -15,6 +15,7 @@ But above all, the entire project is built using JavaScript, so adding new objec
 See the [issues tracker](http://github.com/TALlama/Gamers-Table/issues) for what's being looked at.
 
 Much longer term:
+
 - Card Games
 - Synchronization between tables via a central server
 
