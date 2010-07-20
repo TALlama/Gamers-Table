@@ -218,7 +218,7 @@ var GameObject = Base.extend({
 			this.opts.css['background-image'] = "url('" + this.opts.bgUrl + "')";
 		}
 		
-		this.el = $('<div class="game-object"></div>');
+		this.el = $('<@TAG class="game-object"></@TAG>'.replace(/@TAG/g, this.tagName));
 		this.el.addClass(this.cssClass);
 		jQuery.each(this.opts.css, function(cssKey, cssValue) {
 			gameObject.el.css(cssKey, cssValue);
@@ -229,6 +229,7 @@ var GameObject = Base.extend({
 		this.didAppend();
 		this.redraw();
 	},
+	tagName: 'div',
 	willAppend: function(el) {},
 	didAppend: function(el) {},
 	redraw: function() {}
@@ -289,6 +290,8 @@ var Note = GameObject.extend({
 	cssClass: 'note',
 	willAppend: function() {
 		this.textarea = $('<textarea/>').appendTo(this.el);
+		this.textarea[0].rows = 4;
+		this.textarea[0].columns = 40;
 		
 		var boardSize = this.opts.board.size();
 		this.el.css('left', boardSize.w * 3 / 4);
@@ -364,8 +367,29 @@ var GamersTable = {
 				handler: setupFunction
 			})
 		});
+	},
+	addPlugin: function(url) {
+		$(document).ready(function() {
+			var scriptTag = document.createElement('script');
+			scriptTag.src = url;
+			var bodyTag = document.getElementsByTagName('body')[0];
+			bodyTag.appendChild( scriptTag );
+		});
+	},
+	addPluginsFromQuery: function(search) {
+		search = search || location.search;
+		var plugins = search.split(/\bplugin=([^&]*)/).filter(function(p) { 
+			return p[0] != "?" && p[0] != "&";
+		});
+		jQuery.each(plugins, function() {
+			GamersTable.addPlugin(this + "/setup.js");
+		});
 	}
 }
+
+$(document).ready(function() {
+	GamersTable.addPluginsFromQuery();
+})
 
 KeyboardShortcuts.register('shift-»', function(event) {
 	window.addItemMenuButton.pop();
