@@ -18,6 +18,50 @@ jQuery.fn.uniqueId = function(prefix, clobber) {
 }; 
 jQuery.fn.uniqueId.index = 0;
 
+jQuery.fn.touchDraggable = function(opts) {
+	this.bind('touchstart', function(event) {
+		this.onmousedown = null;
+		this.ontouchmove = moveDrag;
+		this.ontouchend = function () {
+			this.ontouchmove = null;
+			this.ontouchend = null;
+		}
+		
+		var pos = [this.offsetLeft,this.offsetTop];
+		var origin = getCoors(event);
+		
+		return false; // cancels scrolling
+		
+		function moveDrag (e) {
+			var currentPos = getCoors(e);
+			var deltaX = currentPos[0] - origin[0];
+			var deltaY = currentPos[1] - origin[1];
+			this.style.left = (pos[0] + deltaX) + 'px';
+			this.style.top  = (pos[1] + deltaY) + 'px';
+		}
+		
+		function getCoors(e) {
+			e = e.originalEvent ? e.originalEvent : e;
+			var coors = [];
+			if (e.touches && e.touches.length) { // iPhone
+				var t = e.touches.item(0);
+				coors[0] = t.clientX;
+				coors[1] = t.clientY;
+			} else { // all others
+				coors[0] = e.clientX;
+				coors[1] = e.clientY;
+			}
+			return coors;
+		}
+	});
+};	
+	
+function isTouchDevice() {
+	var el = document.createElement('div');
+	el.setAttribute('ongesturestart', 'return;');
+	return (typeof el.ongesturestart == "function");
+}
+
 $(document).ready(function() {
 	window.addItemMenuButton = new PopupMenuButton('+', [{
 		name: 'Add a Die',
@@ -225,7 +269,13 @@ var GameObject = Base.extend({
 		});
 		this.willAppend();
 		this.el.appendTo(this.opts.board.el);
-		if (!this.opts.undraggable) this.el.draggable();
+		if (!this.opts.undraggable) {
+			if (isTouchDevice()) {
+				this.el.touchDraggable();
+			} else {	
+				this.el.draggable();
+			}
+		}
 		this.didAppend();
 		this.redraw();
 	},
