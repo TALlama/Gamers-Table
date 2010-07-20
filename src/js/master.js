@@ -111,10 +111,14 @@ $(document).ready(function() {
 		name: 'Add a Minifig',
 		submenu: [{
 			name: 'Leeloo',
-			handler: function() {return new Icon({bgUrl: 'images/icons/leeloo.png'})}
+			handler: function() {return new Icon({
+				name: 'Leeloo', 
+				bgUrl: 'images/icons/leeloo.png'})}
 		}, {
 			name: 'Orc',
-			handler: function() {return new Icon({bgUrl: 'images/icons/orc.png'})}
+			handler: function() {return new Icon({
+				name: 'this orc', 
+				bgUrl: 'images/icons/orc.png'})}
 		}]
 	}]);
 });
@@ -366,6 +370,7 @@ var GameObject = Base.extend({
 		this.redraw();
 	},
 	tagName: 'div',
+	name: function() {return 'this'},
 	willAppend: function(el) {},
 	didAppend: function(el) {},
 	redraw: function() {},
@@ -377,7 +382,12 @@ var GameObject = Base.extend({
 			gameObject.didRemove();
 		})
 	},
-	didRemove: function() {}
+	didRemove: function() {},
+	trash: function() {
+		if (confirm("Trash " + this.name() + "?")) {
+			this.remove();
+		}
+	}
 })
 
 var Die = GameObject.extend({
@@ -386,6 +396,7 @@ var Die = GameObject.extend({
 		this.base(opts);
 	},
 	cssClass: 'die',
+	name: function() {return 'this die'},
 	willAppend: function() {
 		this.el.css('width', 30);
 		this.el.css('height', 30);
@@ -415,7 +426,7 @@ var Die = GameObject.extend({
 			handler: function() {die.roll();}
 		}, {
 			name: 'Trash',
-			handler: function() {die.remove()}
+			handler: function() {die.trash()}
 		}], {contextEl: die.el});
 	},
 	redraw: function() {
@@ -441,6 +452,7 @@ var Note = GameObject.extend({
 		this.base(opts);
 	},
 	cssClass: 'note',
+	name: function() {return 'this note'},
 	willAppend: function() {
 		this.textarea = $('<textarea/>').appendTo(this.el);
 		this.textarea[0].rows = 4;
@@ -463,6 +475,7 @@ var Background = GameObject.extend({
 		this.base(opts);
 	},
 	cssClass: 'background',
+	name: function() {return 'this background'},
 	willAppend: function() {
 		this.el.css('left', 0);
 		this.el.css('top', 0);
@@ -496,10 +509,11 @@ var Icon = GameObject.extend({
 		var icon = this;
 		new ContextualMenu(icon.el, [{
 			name: 'Trash',
-			handler: function() {icon.remove()}
+			handler: function() {icon.trash()}
 		}]);
 	},
 	cssClass: 'icon',
+	name: function() {return this.opts.name},
 	willAppend: function() {
 		this.el.css('width', this.opts.width || GridBackground.gridSize);
 		this.el.css('height', this.opts.height || GridBackground.gridSize);
