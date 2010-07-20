@@ -53,6 +53,27 @@ html {
 	-webkit-font-smoothing: antialiased;
 }
 
+/* Standard Features */
+button {
+	background-color: #ccc;
+	border: .2em solid #bbb;
+}
+
+button:hover {
+	background-color: #ddd;
+	border: .2em solid #ccc;
+}
+
+.toolbar button {
+	background-color: rgba(0, 0, 0, 0);
+	border: none;
+}
+
+.toolbar button:hover {
+	background-color: rgba(255, 255, 255, .5);
+	border: none;
+}
+
 /* Header */
 header {
 	position: absolute;
@@ -168,6 +189,26 @@ header h1, header h2 {
 	background-color: black;
 }
 
+/* Game Boards */
+.rollbox {
+	position: absolute;
+	top: 30%;
+	bottom: 30%;
+	left: 30%;
+	right: 30%;
+	
+	border: .2em solid rgba(200, 200, 200, .4);
+	background-color: rgba(230, 230, 230, .8);
+	width: 40%;
+	height: 40%;
+}
+
+.rollbox .toolbar {
+	width: 100%;
+	height: 1.5em;
+	background-color: rgba(200, 200, 200, .4);
+}
+
 /* Game Objects */
 .game-object {
 	position: absolute;
@@ -192,13 +233,23 @@ header h1, header h2 {
 .die.d10 { background-image: url('../images/dice/d10.png')}
 .die.d20 { background-image: url('../images/dice/d20.png')}
 
-.die.falling {
-	-webkit-animation-name: falling-die;
-	-webkit-animation-duration: 1.5s;
+.die.falling-a {
+	-webkit-animation-name: falling-die-a;
+	-webkit-animation-duration: 1.2s;
+	-webkit-animation-timing-function: linear;
+}
+.die.falling-b {
+	-webkit-animation-name: falling-die-b;
+	-webkit-animation-duration: 1.3s;
+	-webkit-animation-timing-function: linear;
+}
+.die.falling-c {
+	-webkit-animation-name: falling-die-c;
+	-webkit-animation-duration: 1.4s;
 	-webkit-animation-timing-function: linear;
 }
 
-@-webkit-keyframes falling-die {
+@-webkit-keyframes falling-die-a {
 	0% {
 		opacity: 0;
 		-webkit-transform: rotate(0deg) scale(2.0);
@@ -218,6 +269,55 @@ header h1, header h2 {
 	}
 	100% {
 		-webkit-transform: rotate(310deg) scale(1.0);
+	}
+}
+
+@-webkit-keyframes falling-die-b {
+	0% {
+		opacity: 0;
+		-webkit-transform: rotate(220deg) scale(2.0);
+	}
+	30% {
+		opacity: 1;
+		-webkit-transform: rotate(130deg) scale(1.0);
+	}
+	45% {
+		-webkit-transform: rotate(350deg) scale(1.4);
+	}
+	85% {
+		-webkit-transform: rotate(140deg) scale(1.0);
+	}
+	90% {
+		-webkit-transform: rotate(340deg) scale(1.1);
+	}
+	100% {
+		-webkit-transform: rotate(0deg) scale(1.0);
+	}
+}
+
+@-webkit-keyframes falling-die-c {
+	0% {
+		opacity: 0;
+		-webkit-transform: rotate(180deg) scale(2.0);
+	}
+	10% {
+		opacity: 1;
+		-webkit-transform: rotate(10deg) scale(1.0);
+	}
+	30% {
+		-webkit-transform: rotate(190deg) scale(1.0);
+	}
+	50% {
+		-webkit-transform: rotate(10deg) scale(1.0);
+	}
+	70% {
+		-webkit-transform: rotate(300deg) scale(1.0);
+	}
+	80% {
+		-webkit-transform: rotate(90deg) scale(1.1);
+	}
+	100% {
+		-webkit-transform: rotate(45deg) scale(1.0);
 	}
 }
 

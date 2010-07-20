@@ -267,20 +267,31 @@ var ContextualMenu = PopupMenu.extend({
 		this.base(items, opts);
 		jQuery.extendIf(this.opts, {
 			paddingFromContextEl: 10,
+			appearTimeout: 1.5,
 			disappearTimeout: 3
 		})
 		
 		var cMenu = this;
+		var openTimer = null;
 		var closeTimer = null;
 		this.contextEl.mouseover(function() {
+			if (openTimer) {
+				clearTimeout(openTimer);
+			}
 			if (closeTimer) {
 				clearTimeout(closeTimer);
 				closeTimer = null;
 			}
 			
-			cMenu.pop();
+			openTimer = setTimeout(function() {
+				cMenu.pop(); openTimer = null;
+			}, 1000 * cMenu.opts.appearTimeout);
 		});
 		this.contextEl.mouseout(function() {
+			if (openTimer) {
+				clearTimeout(openTimer);
+				openTimer = null;
+			}
 			if (closeTimer) return;
 			
 			closeTimer = setTimeout(function() {
@@ -309,6 +320,9 @@ var Random = {
 	},
 	intBelow: function(max) {
 		return this.intBetween(0, max);
+	},
+	fromArray: function(array) {
+		return array[Random.intBelow(array.length)];
 	}
 }
 
@@ -317,7 +331,7 @@ var GameBoard = Base.extend({
 		this.el = el;
 	},
 	height: function(){
-		if (this.el.id != 'gameboard') return this.el.clientHeight;
+		if (this.el.id != 'gameboard') return this.el.height();
 		
 		//gameboard fills the screen
 		var D = document;
@@ -328,7 +342,10 @@ var GameBoard = Base.extend({
 		);
 	},
 	size: function() {
-		return {w: this.el.clientWidth, h: this.height()};
+		return {w: this.el.width(), h: this.height()};
+	},
+	offset: function() {
+		return this.el.offset();
 	},
 	resize: function() {
 		$(this.el).css('height', this.height() + 'px');
@@ -337,6 +354,29 @@ var GameBoard = Base.extend({
 $(document).ready(function() {
 	GameBoard.global = new GameBoard(document.getElementById('gameboard'));
 	GameBoard.global.resize();
+});
+
+var RollBox = GameBoard.extend({
+	constructor: function(el) {
+		var rollBox = this;
+		
+		if (!el) el = $('<div/>').appendTo(document.body);
+		this.base(el);
+		
+		rollBox.el.addClass('rollbox');
+		rollBox.toolbar = $('<div class="toolbar" />').appendTo(this.el);
+		$('<button>X</button>').appendTo(rollBox.toolbar).click(function() {
+			rollBox.remove();
+		});
+		rollBox.el.draggable({
+			handle: rollBox.toolbar
+		})
+	},
+	remove: function() {
+		this.el.fadeOut(300, function() {
+			this.el.remove();
+		});
+	}
 });
 
 var GameObject = Base.extend({
@@ -363,7 +403,9 @@ var GameObject = Base.extend({
 			if (isTouchDevice()) {
 				this.el.touchDraggable();
 			} else {	
-				this.el.draggable();
+				this.el.draggable({
+					containment: this.opts.board.el
+				});
 			}
 		}
 		this.didAppend();
@@ -406,12 +448,14 @@ var Die = GameObject.extend({
 		var die = this;
 		
 		die.el.animationEnd(function() {
-			die.el.removeClass('falling');
+			die.el.removeClass('falling-a');
+			die.el.removeClass('falling-b');
+			die.el.removeClass('falling-c');
 		});	
 		
 		var boardSize = die.opts.board.size();
-		die.el.css('left', Random.intBetween(20, boardSize.w));
-		die.el.css('top', Random.intBetween(20, boardSize.h));
+		die.el.css('left', Random.intBetween(10, boardSize.w - 10));
+		die.el.css('top', Random.intBetween(10, boardSize.h - 10));
 		
 		die.el.attr('title', 'd' + this.sides);
 		
@@ -437,7 +481,9 @@ var Die = GameObject.extend({
 	},
 	place: function() {
 		this.el.css('webkitTransform', "rotate(" + Random.intBetween(-60, 60) + "deg)");
-		this.el.addClass('falling');
+		
+		var animation = Random.fromArray(['a', 'b', 'c']);
+		this.el.addClass('falling-' + animation);
 	},
 	roll: function() {
 		this.nextResult();
