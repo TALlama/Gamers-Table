@@ -326,7 +326,27 @@ var Random = {
 	}
 }
 
-var GameBoard = Base.extend({
+var Dispatcher = Base.extend({
+	bind: function(eventName, arg) {
+		var bindArgs = arguments;
+		
+		this.listeners = this.listeners || {};
+		this.listeners[eventName] = this.listeners[eventName] || [];
+	
+		if (typeof(arg) == "function") {
+			//user registering for notification
+			this.listeners[eventName].push(arg);
+		} else {
+			//something was added
+			jQuery.each(this.listeners[eventName], function() {
+				this.apply({}, Array.prototype.splice.call(bindArgs, 1))
+			});
+			return this;
+		}
+	}
+});
+
+var GameBoard = Dispatcher.extend({
 	constructor: function(el) {
 		this.el = el;
 	},
@@ -349,6 +369,9 @@ var GameBoard = Base.extend({
 	},
 	resize: function() {
 		$(this.el).css('height', this.height() + 'px');
+	},
+	didAdd: function(arg) {
+		this.bind('didAdd', arg);
 	}
 });
 $(document).ready(function() {
@@ -357,13 +380,16 @@ $(document).ready(function() {
 });
 
 var RollBox = GameBoard.extend({
-	constructor: function(el) {
+	constructor: function(opts) {
 		var rollBox = this;
+		this.opts = opts = opts || {};
 		
-		if (!el) el = $('<div/>').appendTo(document.body);
-		this.base(el);
+		if (!opts.el) opts.el = $('<div/>').appendTo(document.body);
+		this.base(opts.el);
 		
+		//add the rollbox accountrements
 		rollBox.el.addClass('rollbox');
+		rollBox.total = $('<div class="total">0</div>').appendTo(this.el);
 		rollBox.toolbar = $('<div class="toolbar" />').appendTo(this.el);
 		$('<button>X</button>').appendTo(rollBox.toolbar).click(function() {
 			rollBox.remove();
@@ -371,15 +397,30 @@ var RollBox = GameBoard.extend({
 		rollBox.el.draggable({
 			handle: rollBox.toolbar
 		})
+		
+		//now add the dice
+		jQuery.each(opts.dice, function() {
+			new Die(this, {board: rollBox}).roll(function() {
+				rollBox.updateTotal();
+			});
+		});
+		rollBox.updateTotal();
 	},
 	remove: function() {
 		this.el.fadeOut(300, function() {
 			this.el.remove();
 		});
+	},
+	updateTotal: function() {
+		var total = 0;
+		$('.rollbox .die').each(function() {
+			total += Number($(this).text());
+		});
+		this.total.text(total);
 	}
 });
 
-var GameObject = Base.extend({
+var GameObject = Dispatcher.extend({
 	constructor: function(opts) {
 		var gameObject = this;
 		
@@ -409,6 +450,7 @@ var GameObject = Base.extend({
 			}
 		}
 		this.didAppend();
+		this.opts.board.didAdd(this);
 		this.redraw();
 	},
 	tagName: 'div',
@@ -486,9 +528,14 @@ var Die = GameObject.extend({
 		this.el.addClass('falling-' + animation);
 	},
 	roll: function() {
-		this.nextResult();
-		this.place();
-		this.redraw();
+		if (arguments.length == 0) {
+			this.nextResult();
+			this.place();
+			this.redraw();
+			this.bind('roll');
+		} else {
+			this.bind('roll', arguments[0])
+		}
 	}
 });
 

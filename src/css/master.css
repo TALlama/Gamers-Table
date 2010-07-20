@@ -203,6 +203,12 @@ header h1, header h2 {
 	height: 40%;
 }
 
+.rollbox .total {
+	float: right;
+	font-size: 400%;
+	color: rgba(0, 0, 0, .6);
+}
+
 .rollbox .toolbar {
 	width: 100%;
 	height: 1.5em;
