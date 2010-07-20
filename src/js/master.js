@@ -188,11 +188,13 @@ var PopupMenu = Base.extend({
 	},
 	unpop: function() {
 		if (!this.el) return;
+		var popupMenu = this;
+		var popupMenuEl = this.el;
 		
 		console.log('Unpop!');
 		KeyboardShortcuts.unimpose(this.shortcuts);
 		this.el.transitionEnd(function() {
-			this.el.remove();
+			popupMenuEl.remove();
 		});
 		this.el.removeClass('popped');
 		this.el.controller = null;
@@ -490,6 +492,12 @@ var Icon = GameObject.extend({
 	constructor: function(opts) {
 		this.opts = opts || {};
 		this.base(opts);
+		
+		var icon = this;
+		new ContextualMenu(icon.el, [{
+			name: 'Trash',
+			handler: function() {icon.remove()}
+		}]);
 	},
 	cssClass: 'icon',
 	willAppend: function() {
