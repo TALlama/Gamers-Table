@@ -215,15 +215,14 @@ header h1, header h2 {
 
 /* Notes */
 .note {
-	padding: .3em;
-	background-color: #ccf;
+	padding: .8em 0 0 0;
+	background-color: rgba(150, 150, 255, .6);
 }
 
 .note textarea {
+	margin: 0;
 	border: none;
-	background-color: #eef;
-	width: 10em;
-	height: 5em;
+	background-color: rgba(230, 230, 255, .6);
 }
 
 /* Backgrounds */
