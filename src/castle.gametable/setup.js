@@ -7,14 +7,14 @@ GamersTable.registerScenario('Castle Assault', function() {
 	new GridBackground();
 	
 	//add some guys
-	new Icon({
+	new Person({
 		bgUrl: 'images/icons/orc.png',
 		css: {
 			left: (GridBackground.gridSize * 2) + 'px',
 			top: (GridBackground.gridSize * 3) + 'px'
 		}
 	});
-	new Icon({
+	new Person({
 		bgUrl: 'images/icons/orc.png',
 		css: {
 			left: (GridBackground.gridSize * 7) + 'px',

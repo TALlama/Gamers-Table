@@ -78,7 +78,7 @@ jQuery.fn.animationEnd = function(callback) {
 	} else callback();
 }
 
-function lgb(msg) {
+function debug(msg) {
 	$('#gameboard').append("<p>" + msg + "</p>");
 }
 
@@ -111,12 +111,12 @@ $(document).ready(function() {
 		name: 'Add a Minifig',
 		submenu: [{
 			name: 'Leeloo',
-			handler: function() {return new Icon({
+			handler: function() {return new Person({
 				name: 'Leeloo', 
 				bgUrl: 'images/icons/leeloo.png'})}
 		}, {
 			name: 'Orc',
-			handler: function() {return new Icon({
+			handler: function() {return new Person({
 				name: 'this orc', 
 				bgUrl: 'images/icons/orc.png'})}
 		}]
@@ -157,7 +157,9 @@ var PopupMenu = Base.extend({
 				return item.handler();
 			}
 			: function() {
-				var subMenu = new PopupMenu(item.submenu, item.submenuOptions);
+				var subMenu = popupMenu.makeSubMenu(
+					item.submenu, 
+					jQuery.extendIf(item.submenuOptions, popupMenu.opts));
 				subMenu.pop();
 				return subMenu;
 			};
@@ -182,6 +184,9 @@ var PopupMenu = Base.extend({
 			name:'Cancel', 
 			handler: jQuery.noop
 		}).css("fontSize", "70%").css("textAlign", "right");
+	},
+	makeSubMenu: function(items, opts) {
+		return new PopupMenu(items, opts);
 	},
 	pop: function() {
 		this.makeEl();
@@ -310,6 +315,9 @@ var ContextualMenu = PopupMenu.extend({
 			this.contextEl.outerWidth() + 
 			this.opts.paddingFromContextEl)
 	},
+	makeSubMenu: function(items, opts) {
+		return new ContextualMenu(this.contextEl, items, opts);
+	},
 });
 
 var Random = {
@@ -381,39 +389,52 @@ $(document).ready(function() {
 
 var RollBox = GameBoard.extend({
 	constructor: function(opts) {
-		var rollBox = this;
+		var rollbox = this;
 		this.opts = opts = opts || {};
+		jQuery.extendIf(this.opts, {
+			title: '',
+			dice: [],
+			tokens: []
+		})
 		
 		if (!opts.el) opts.el = $('<div/>').appendTo(document.body);
 		this.base(opts.el);
 		
 		//add the rollbox accountrements
-		rollBox.el.addClass('rollbox');
-		rollBox.total = $('<div class="total">0</div>').appendTo(this.el);
-		rollBox.toolbar = $('<div class="toolbar" />').appendTo(this.el);
-		$('<button>X</button>').appendTo(rollBox.toolbar).click(function() {
-			rollBox.remove();
+		rollbox.el.addClass('rollbox');
+		rollbox.toolbar = $('<div class="toolbar" />').
+			appendTo(this.el);
+		rollbox.title = $('<div class="title"></div>').
+			text(opts.title).
+			appendTo(rollbox.toolbar);
+		$('<button>X</button>').appendTo(rollbox.toolbar).click(function() {
+			rollbox.remove();
 		});
-		rollBox.el.draggable({
-			handle: rollBox.toolbar
+		rollbox.el.draggable({
+			handle: rollbox.toolbar
 		})
+		rollbox.total = $('<div class="total">0</div>').appendTo(this.el);
 		
-		//now add the dice
+		//now add the dice and the tokens
 		jQuery.each(opts.dice, function() {
-			new Die(this, {board: rollBox}).roll(function() {
-				rollBox.updateTotal();
+			new Die(this, {board: rollbox}).roll(function() {
+				rollbox.updateTotal();
 			});
 		});
-		rollBox.updateTotal();
+		jQuery.each(opts.tokens, function(i) {
+			new NumberToken(this, {board: rollbox, css: {left: 32 * i}});
+		});
+		rollbox.updateTotal();
 	},
 	remove: function() {
+		var rollbox = this;
 		this.el.fadeOut(300, function() {
-			this.el.remove();
+			rollbox.el.remove();
 		});
 	},
 	updateTotal: function() {
 		var total = 0;
-		$('.rollbox .die').each(function() {
+		$('.rollbox .number-token').each(function() {
 			total += Number($(this).text());
 		});
 		this.total.text(total);
@@ -474,10 +495,23 @@ var GameObject = Dispatcher.extend({
 	}
 })
 
-var Die = GameObject.extend({
+var NumberToken = GameObject.extend({
+	constructor: function(number, opts) {
+		this.number = Number(number);
+		this.base(opts);
+	},
+	didAppend: function() {
+		var token = this;
+		token.el.text(this.number);
+		token.el.addClass('number-token');
+		this.base();
+	}
+});
+
+var Die = NumberToken.extend({
 	constructor: function(sides, opts) {
 		this.sides = Number(sides);
-		this.base(opts);
+		this.base(0, opts);
 	},
 	cssClass: 'die',
 	name: function() {return 'this die'},
@@ -488,6 +522,7 @@ var Die = GameObject.extend({
 	},
 	didAppend: function() {
 		var die = this;
+		this.base();
 		
 		die.el.animationEnd(function() {
 			die.el.removeClass('falling-a');
@@ -516,10 +551,10 @@ var Die = GameObject.extend({
 		}], {contextEl: die.el});
 	},
 	redraw: function() {
-		this.el.text(this.lastRoll);
+		this.el.text(this.number);
 	},
 	nextResult: function() {
-		this.lastRoll = Random.intBelow(this.sides) + 1;
+		this.number = Random.intBelow(this.sides) + 1;
 	},
 	place: function() {
 		this.el.css('webkitTransform', "rotate(" + Random.intBetween(-60, 60) + "deg)");
@@ -600,7 +635,7 @@ var Icon = GameObject.extend({
 		this.base(opts);
 		
 		var icon = this;
-		new ContextualMenu(icon.el, [{
+		this.cMenu = new ContextualMenu(icon.el, [{
 			name: 'Trash',
 			handler: function() {icon.trash()}
 		}]);
@@ -611,6 +646,25 @@ var Icon = GameObject.extend({
 		this.el.css('width', this.opts.width || GridBackground.gridSize);
 		this.el.css('height', this.opts.height || GridBackground.gridSize);
 	},
+});
+
+var Person = Icon.extend({
+	constructor: function(opts) {
+		this.base(opts);
+		
+		var icon = this;
+		this.cMenu.items.unshift({
+			name: 'Roll',
+			submenu: [{
+				name: 'd20',
+				handler: function() {new RollBox({dice: [20]})}
+			},{
+				name: 'd6',
+				handler: function() {new RollBox({dice: [6]})}
+			}]
+		});
+	},
+	cssClass: 'person'
 });
 
 var GamersTable = {
@@ -660,4 +714,22 @@ $(document).ready(function() {
 KeyboardShortcuts.register('shift-»', function(event) {
 	window.addItemMenuButton.pop();
 	window.addItemMenuButton.focus();
+});
+KeyboardShortcuts.register('r', function(event) {
+	var roll = prompt('Roll what?');
+	var dice = [];
+	var tokens = [];
+	var pattern = /(\d+)d(\d+)/;
+	jQuery.each(roll.split(/\s/), function() {
+		var match = this.match(pattern);
+		if (match) {
+			for (var i = 0; i < match[1]; ++i) dice.push(match[2]);
+		} else if (this.match(/-?\d+/)) {
+			tokens.push(Number(this));
+		} else {
+			alert('Unknown die: ' + this);
+			return;
+		}
+	});
+	new RollBox({title: roll, dice: dice, tokens: tokens});
 });

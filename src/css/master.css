@@ -215,6 +215,10 @@ header h1, header h2 {
 	background-color: rgba(200, 200, 200, .4);
 }
 
+.rollbox .title {
+	float: right;
+}
+
 /* Game Objects */
 .game-object {
 	position: absolute;
@@ -225,13 +229,26 @@ header h1, header h2 {
 	-webkit-transition-duration: 1s;
 }
 
-/* Dice */
-.die {
+/* Number Tokens */
+.number-token {
 	color: white;
-	background-repeat: no-repeat;
 	font-size: 200%;
 	text-align: center;
 	vertical-align: center;
+	
+	background-color: rgba(100, 100, 255, 1);
+	border-radius: 20px;
+	border: none;
+	
+	width: 30px;
+	height: 30px;
+}
+
+/* Dice */
+.die {
+	background-color: rgba(0,0,0,0);
+	border-radius: 0;
+	background-repeat: no-repeat;
 }
 .die.d4 { background-image: url('../images/dice/d4.png')}
 .die.d6 { background-image: url('../images/dice/d6.png')}
