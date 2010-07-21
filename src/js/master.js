@@ -279,6 +279,7 @@ var ContextualMenu = PopupMenu.extend({
 		var cMenu = this;
 		var openTimer = null;
 		var closeTimer = null;
+		var isOverMenu = false;
 		if (this.opts.appearTimeout >= 0) this.contextEl.mouseover(function() {
 			if (openTimer) {
 				clearTimeout(openTimer);
@@ -290,6 +291,8 @@ var ContextualMenu = PopupMenu.extend({
 			
 			openTimer = setTimeout(function() {
 				cMenu.pop(); openTimer = null;
+				cMenu.el.mouseover(function() {isOverMenu = true});
+				cMenu.el.mouseout(function() {isOverMenu = false});
 			}, 1000 * cMenu.opts.appearTimeout);
 		});
 		this.contextEl.mouseout(function() {
@@ -298,6 +301,7 @@ var ContextualMenu = PopupMenu.extend({
 				openTimer = null;
 			}
 			if (closeTimer) return;
+			if (isOverMenu) return;
 			
 			closeTimer = setTimeout(function() {
 				cMenu.unpop(); closeTimer = null
