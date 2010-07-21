@@ -717,6 +717,16 @@ var GamersTable = {
 			})
 		});
 	},
+	addStylesheet: function(url) {
+		$(document).ready(function() {
+			var linkTag = document.createElement('link');
+			linkTag.rel = "stylesheet";
+			linkTag.type = "text/css";
+			linkTag.href = url;
+			var bodyTag = document.getElementsByTagName('head')[0];
+			bodyTag.appendChild(linkTag);
+		});
+	},
 	addPlugin: function(url) {
 		$(document).ready(function() {
 			var scriptTag = document.createElement('script');
@@ -736,9 +746,24 @@ var GamersTable = {
 	}
 }
 
+if (jQuery.query.get('test') == "on") {
+	document.write('<link rel="stylesheet" href="js/lib/jquery/qunit.css" type="text/css" media="screen" />');
+	document.write('<script src="js/lib/jquery/qunit.js"> </s' + 'cript>');
+	
+	$(document).ready(function() {
+		var testResults = $('<div id="unit-test-results"></div>').prependTo($('body'));
+		testResults.append($('<h1 id="qunit-header">QUnit Tests</h1>'));  
+		testResults.append($('<h2 id="qunit-banner"></h2>'));
+		testResults.append($('<h2 id="qunit-userAgent"></h2>'));
+		testResults.append($('<ol id="qunit-tests"></ol>'));
+	});
+	
+	GamersTable.addPlugin('js/tests/all.js');
+}
+
 $(document).ready(function() {
 	GamersTable.addPluginsFromQuery();
-})
+});
 
 KeyboardShortcuts.register('shift-»', function(event) {
 	window.addItemMenuButton.pop();

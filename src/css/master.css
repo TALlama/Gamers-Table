@@ -127,6 +127,13 @@ header h1, header h2 {
 	z-index: -1;
 }
 
+#unit-test-results {
+	position: absolute;
+	right: 0;
+	opacity: .8;
+	width: 50%;
+}
+
 /* Sidebar */
 .menu-button {
 	z-index: 10000;
