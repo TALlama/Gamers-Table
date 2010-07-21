@@ -147,6 +147,9 @@ var PopupMenu = Base.extend({
 		var popupMenu = this;
 		this.items = items;
 		this.opts = opts || {};
+		jQuery.extendIf(this.opts, {
+			addEllipses: true
+		});
 	},
 	addMenuItem: function(item) {
 		var popupMenu = this;
@@ -166,6 +169,7 @@ var PopupMenu = Base.extend({
 		itemEl[0].item = item;
 		
 		itemEl.text(item.name);
+		if (!item.handler && popupMenu.opts.addEllipses) itemEl.text(itemEl.text() + "…");
 		itemEl.click(item.handleAndClose);
 		
 		return itemEl;
