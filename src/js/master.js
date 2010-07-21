@@ -273,13 +273,13 @@ var ContextualMenu = PopupMenu.extend({
 		jQuery.extendIf(this.opts, {
 			paddingFromContextEl: 10,
 			appearTimeout: 1.5,
-			disappearTimeout: 3
+			disappearTimeout: 3,
 		})
 		
 		var cMenu = this;
 		var openTimer = null;
 		var closeTimer = null;
-		this.contextEl.mouseover(function() {
+		if (this.opts.appearTimeout >= 0) this.contextEl.mouseover(function() {
 			if (openTimer) {
 				clearTimeout(openTimer);
 			}
@@ -316,7 +316,11 @@ var ContextualMenu = PopupMenu.extend({
 			this.opts.paddingFromContextEl)
 	},
 	makeSubMenu: function(items, opts) {
-		return new ContextualMenu(this.contextEl, items, opts);
+		var optsCopy = jQuery.extend(true, {}, opts || {});
+		return new ContextualMenu(this.contextEl, items, 
+			jQuery.extend(true, optsCopy, {
+				appearTimeout: -1
+			}));
 	},
 });
 
