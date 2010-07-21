@@ -452,6 +452,23 @@ var RollBox = GameBoard.extend({
 		this.total.text(total);
 	}
 });
+RollBox.show = function(show) {
+	var dice = [];
+	var tokens = [];
+	var pattern = /(\d+)d(\d+)/;
+	jQuery.each(roll.split(/\s/), function() {
+		var match = this.match(pattern);
+		if (match) {
+			for (var i = 0; i < match[1]; ++i) dice.push(match[2]);
+		} else if (this.match(/-?\d+/)) {
+			tokens.push(Number(this));
+		} else {
+			alert('Unknown die: ' + this);
+			return;
+		}
+	});
+	new RollBox({title: roll, dice: dice, tokens: tokens});
+}
 
 var GameObject = Dispatcher.extend({
 	constructor: function(opts) {
@@ -729,19 +746,5 @@ KeyboardShortcuts.register('shift-»', function(event) {
 });
 KeyboardShortcuts.register('r', function(event) {
 	var roll = prompt('Roll what?');
-	var dice = [];
-	var tokens = [];
-	var pattern = /(\d+)d(\d+)/;
-	jQuery.each(roll.split(/\s/), function() {
-		var match = this.match(pattern);
-		if (match) {
-			for (var i = 0; i < match[1]; ++i) dice.push(match[2]);
-		} else if (this.match(/-?\d+/)) {
-			tokens.push(Number(this));
-		} else {
-			alert('Unknown die: ' + this);
-			return;
-		}
-	});
-	new RollBox({title: roll, dice: dice, tokens: tokens});
+	RollBox.show(roll);
 });
