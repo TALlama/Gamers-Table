@@ -382,7 +382,7 @@ var GameBoard = Dispatcher.extend({
 		);
 	},
 	size: function() {
-		return {w: this.el.width(), h: this.height()};
+		return {w: $(this.el).width(), h: this.height()};
 	},
 	offset: function() {
 		return this.el.offset();
@@ -452,7 +452,7 @@ var RollBox = GameBoard.extend({
 		this.total.text(total);
 	}
 });
-RollBox.show = function(show) {
+RollBox.show = function(roll) {
 	var dice = [];
 	var tokens = [];
 	var pattern = /(\d+)d(\d+)/;
