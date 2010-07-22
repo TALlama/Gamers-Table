@@ -488,6 +488,7 @@ var GameObject = Dispatcher.extend({
 		jQuery.each(this.opts.css, function(cssKey, cssValue) {
 			gameObject.el.css(cssKey, cssValue);
 		});
+		this.el[0].controller = this;
 		this.willAppend();
 		this.el.appendTo(this.opts.board.el);
 		if (!this.opts.undraggable) {
@@ -495,6 +496,7 @@ var GameObject = Dispatcher.extend({
 				this.el.touchDraggable();
 			} else {	
 				this.el.draggable({
+					handle: gameObject.dragHandle(),
 					containment: this.opts.board.el
 				});
 			}
@@ -505,16 +507,28 @@ var GameObject = Dispatcher.extend({
 	},
 	tagName: 'div',
 	name: function() {return 'this'},
+	dragHandle: function() {return null},
 	willAppend: function(el) {},
 	didAppend: function(el) {},
 	redraw: function() {},
-	remove: function() {
+	remove: function(opts) {
 		var gameObject = this;
-		gameObject.el.fadeOut(300, function() {
+		opts = opts || {};
+		
+		function cleanup() {
+			if (gameObject.isRemoved) return;
+			gameObject.isRemoved = true;
+			
 			gameObject.el.remove();
 			gameObject.el = null;
 			gameObject.didRemove();
-		})
+		}
+		
+		if (opts.fadeTime > 0) {
+			gameObject.el.fadeOut(opts.fadeTime || 300, cleanup)
+		} else {
+			cleanup();
+		}
 	},
 	didRemove: function() {},
 	trash: function() {
@@ -607,13 +621,24 @@ var Note = GameObject.extend({
 	constructor: function(opts) {
 		this.opts = opts || {};
 		this.base(opts);
+		jQuery.extendIf(this.opts, {
+			text: ''
+		});
 	},
 	cssClass: 'note',
+	dragHandle: function() {return this.toolbar},
 	name: function() {return 'this note'},
 	willAppend: function() {
+		var note = this;
+		
+		this.toolbar = $('<div class="toolbar"/>').appendTo(this.el);
+		this.closer = $('<button class="close">X</button>').appendTo(this.toolbar);
+		this.closer.click(function() {note.remove()});
+		
 		this.textarea = $('<textarea/>').appendTo(this.el);
 		this.textarea[0].rows = 4;
 		this.textarea[0].columns = 40;
+		this.textarea.text(this.opts.text);
 		
 		var boardSize = this.opts.board.size();
 		this.el.css('left', boardSize.w * 3 / 4);
@@ -654,6 +679,9 @@ var GridBackground = Background.extend({
 		opts.css["z-index"] = -9999;
 		
 		this.base(opts);
+	},
+	willAppend: function() {
+		this.el.addClass('grid');
 	}
 });
 GridBackground.gridSize = 72;
@@ -746,7 +774,8 @@ var GamersTable = {
 	}
 }
 
-if (jQuery.query.get('test') == "on") {
+if (jQuery.query.get('test') == "on"
+|| decodeURIComponent(document.location.search).match(/module:/)) {
 	document.write('<link rel="stylesheet" href="js/lib/jquery/qunit.css" type="text/css" media="screen" />');
 	document.write('<script src="js/lib/jquery/qunit.js"> </s' + 'cript>');
 	

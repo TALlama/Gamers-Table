@@ -55,22 +55,19 @@ html {
 
 /* Standard Features */
 button {
-	background-color: #ccc;
-	border: .2em solid #bbb;
+	background-color: rgba(230, 230, 230, .2);
+	border: .2em solid rgba(230, 230, 230, .3);
 }
 
 button:hover {
-	background-color: #ddd;
-	border: .2em solid #ccc;
+	background-color: rgba(230, 230, 230, .5);
 }
 
 .toolbar button {
-	background-color: rgba(0, 0, 0, 0);
 	border: none;
 }
 
 .toolbar button:hover {
-	background-color: rgba(255, 255, 255, .5);
 	border: none;
 }
 
@@ -242,6 +239,7 @@ header h1, header h2 {
 	font-size: 200%;
 	text-align: center;
 	vertical-align: center;
+	text-shadow: #333 2px 2px 2px;
 	
 	background-color: rgba(100, 100, 255, 1);
 	border-radius: 20px;
@@ -353,8 +351,15 @@ header h1, header h2 {
 
 /* Notes */
 .note {
-	padding: .8em 0 0 0;
 	background-color: rgba(150, 150, 255, .6);
+}
+
+.note .toolbar {
+	padding-bottom: 2px;
+}
+
+.note .toolbar button {
+	font-size: 30%;
 }
 
 .note textarea {
