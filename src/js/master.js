@@ -1,11 +1,23 @@
-jQuery.extendIf = function(into, from) {
-	if (!into) into = {}
-	if (!from) from = {}
+jQuery.extendIf = function(isDeep, into, from) {
+	if (arguments.length == 2) {
+		from = into;	
+		into = isDeep;
+		isDeep = false;
+	}
+	
+	if (!into) into = {};
+	if (!from) from = {};
 	
 	for (option in from) {
-		if (typeof(into[option]) == "undefined") into[option] = from[option]
+		if (isDeep && typeof(from[option]) == "object") {
+			into[option] = jQuery.extendIf(true, into[option], from[option]);
+		}
+		
+		if (typeof(into[option]) == "undefined") {
+			into[option] = from[option];
+		}
 	}
-	return into
+	return into;
 }
 
 jQuery.fn.uniqueId = function(prefix, clobber) { 
@@ -99,7 +111,10 @@ $(document).ready(function() {
 		name: 'Add a Background',
 		submenu: [{
 			name: 'Grid',
-			handler: function() {return new GridBackground()}
+			handler: function() {
+				var size = prompt("How big of a grid do you want?", 72);
+				return new GridBackground({size: size});
+			}
 		}, {
 			name: 'The Crossing',
 			handler: function() {return new Background({
@@ -671,17 +686,43 @@ var Background = GameObject.extend({
 	},
 });
 
-var GridBackground = Background.extend({
+var GridBackground = GameObject.extend({
 	constructor: function(opts) {
-		opts = opts || {};
-		opts.bgUrl = 'images/backgrounds/grid.png';
-		opts.css = opts.css || {};
-		opts.css["z-index"] = -9999;
+		this.opts = opts = opts || {};
+		jQuery.extendIf(true, this.opts, {
+			size: GridBackground.gridSize,
+			css: {
+				'z-index': -9999,
+				opacity: .5
+			}
+		});
+		
+		//REQ: IE8 and less don't support background-size
+		this.hgrid = new Background(jQuery.extendIf(true, {
+			bgUrl: 'images/backgrounds/hbar.png',
+			css: {
+				'background-size': '100% ' + this.opts.size + 'px'
+			}
+		}, this.opts));
+		this.vgrid = new Background(jQuery.extendIf(true, {
+			bgUrl: 'images/backgrounds/vbar.png',
+			css: {
+				'background-size': this.opts.size + 'px 100%'
+			}
+		}, this.opts));
+		GridBackground.gridSize = this.opts.size;
 		
 		this.base(opts);
 	},
 	willAppend: function() {
 		this.el.addClass('grid');
+		
+		this.base();
+	},
+	didRemove: function() {
+		this.hgrid.remove();
+		this.vgrid.remove();
+		this.base();
 	}
 });
 GridBackground.gridSize = 72;

@@ -12,6 +12,19 @@ testHelpers.removeAllGameObjects.ofClass = function(goClass) {
 }
 
 var tests = {};
+tests.util = function() {
+	module("Util");
+	test("extendIf goes deep", 5, function() {
+		var into = {a: 1, d: {x: 10}, e: {x: 10}};
+		var from = {a: 2, b: 2, c: {x: 1, y: 2, z: 3}, e: {y: 20}};
+		jQuery.extendIf(true, into, from);
+		equals(into.a, 1, 'Should not override existing properties');
+		equals(into.b, 2, 'Should set unset properties');
+		same(into.c, {x: 1, y: 2, z: 3}, 'Should get whole object');
+		same(into.d, {x: 10}, 'Should not override existing objects');
+		same(into.e, {x: 10, y: 20}, 'Should update deep objects.');
+	});
+};
 tests.dice = function() {
 	module("Dice", {
 		teardown: testHelpers.removeAllGameObjects.ofClass('die')
@@ -77,7 +90,7 @@ tests.grids = function() {
 		equals($('.grid').length, 1, "Should find the grid");
 		var bg = $('.grid').css('background-image');
 		ok(bg, "Should have the a URL for the background: " + bg);
-	})
+	});
 }
 
 $(document).ready(function(){
