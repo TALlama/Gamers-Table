@@ -915,7 +915,8 @@ var GamersTable = {
 			return p[0] != "?" && p[0] != "&";
 		});
 		jQuery.each(plugins, function() {
-			GamersTable.addPlugin(this + "/setup.js");
+			var plugin = jQuery.trim(decodeURIComponent(this));
+			if (plugin) GamersTable.addPlugin(plugin + "/setup.js");
 		});
 	}
 }
