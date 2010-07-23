@@ -107,6 +107,15 @@ tests.dice = function() {
 	testRollboxWithSubtractedToken("Rollbox with Subtracted Token (space before)", "1d4 -4");
 	testRollboxWithSubtractedToken("Rollbox with Subtracted Token (space after)", "1d4- 4");
 	testRollboxWithSubtractedToken("Rollbox with Subtracted Token (space before and after)", "1d4 - 4");
+	
+	test("Rollbox bust", function() {
+		var rollbox = Rollbox.show("3d4");
+		equals($('.rollbox > .d4').length, 3, "Should find three d4s, all in the rollbox");
+		equals($('.d4').length, 3, "Should find no d4s but those in the rollbox");
+		rollbox.bust({fadeTime: 0});
+		equals($('#gameboard > .d4').length, 3, "All the d4s should be in the gameboard proper now");
+		rollbox.remove({fadeTime: 0});
+	});
 };
 tests.notes = function() {
 	module("Notes", {

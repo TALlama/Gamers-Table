@@ -436,7 +436,10 @@ var Rollbox = GameBoard.extend({
 			appendTo(rollbox.toolbar);
 		$('<button>X</button>').appendTo(rollbox.toolbar).click(function() {
 			rollbox.remove();
-		});
+		}).attr('title', 'Close the rollbox');	
+		$('<button>↺</button>').appendTo(rollbox.toolbar).click(function() {
+			rollbox.bust();
+		}).attr('title', 'Bust these dice out of the box and onto the game board');
 		rollbox.el.draggable({
 			handle: rollbox.toolbar
 		})
@@ -472,6 +475,16 @@ var Rollbox = GameBoard.extend({
 			total += Number(this.controller.number);
 		});
 		this.total.text(total);
+	},
+	bust: function(opts) {
+		var rollbox = this;
+		rollbox.el.find('.game-object').each(function() {
+			var obj = $(this);
+			var offset = obj.offset();
+			obj.appendTo('#gameboard').offset(offset);
+			obj.draggable("option", "containment", 'document');
+		});
+		rollbox.remove(opts);
 	}
 });
 Rollbox.show = function(roll) {
