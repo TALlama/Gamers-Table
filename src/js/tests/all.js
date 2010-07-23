@@ -140,12 +140,12 @@ tests.backgrounds = function() {
 	})
 }
 tests.grids = function() {
-	module("Backgrounds.Grids", {
+	module("Grids", {
 		teardown: testHelpers.removeAllGameObjects.ofClass('grid')
 	});
 	
 	test("72px Grid", function() {
-		var bg = new GridBackground();
+		var bg = new Grid();
 		equals($('.grid').length, 1, "Should find the grid");
 		var bg = $('.grid').css('background-image');
 		ok(bg, "Should have the a URL for the background: " + bg);

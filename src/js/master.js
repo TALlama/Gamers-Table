@@ -113,7 +113,7 @@ $(document).ready(function() {
 			name: 'Grid',
 			handler: function() {
 				var size = prompt("How big of a grid do you want?", 72);
-				return new GridBackground({size: size});
+				return new Grid({size: size});
 			}
 		}, {
 			name: 'The Crossing',
@@ -538,7 +538,7 @@ var GameObject = Dispatcher.extend({
 		this.redraw();
 	},
 	tagName: 'div',
-	name: function() {return 'this'},
+	name: function() {return this.opts.name || 'this'},
 	dragHandle: function() {return null},
 	willAppend: function(el) {},
 	didAppend: function(el) {},
@@ -715,11 +715,11 @@ var Background = GameObject.extend({
 	},
 });
 
-var GridBackground = GameObject.extend({
+var Grid = GameObject.extend({
 	constructor: function(opts) {
 		this.opts = opts = opts || {};
 		jQuery.extendIf(true, this.opts, {
-			size: GridBackground.gridSize,
+			size: Grid.size,
 			css: {
 				'z-index': -9999,
 				opacity: .5
@@ -739,7 +739,7 @@ var GridBackground = GameObject.extend({
 				'background-size': this.opts.size + 'px 100%'
 			}
 		}, this.opts));
-		GridBackground.gridSize = this.opts.size;
+		Grid.size = this.opts.size;
 		
 		this.base(opts);
 	},
@@ -754,12 +754,14 @@ var GridBackground = GameObject.extend({
 		this.base();
 	}
 });
-GridBackground.gridSize = 72;
+Grid.size = 72;
 
 var Icon = GameObject.extend({
 	constructor: function(opts) {
-		this.opts = opts || {};
-		this.base(opts);
+		this.base(jQuery.extendIf(opts, {
+			width: Grid.size,
+			height: Grid.size
+		}));
 		
 		var icon = this;
 		this.cMenu = new ContextualMenu(icon.el, [{
@@ -768,10 +770,10 @@ var Icon = GameObject.extend({
 		}]);
 	},
 	cssClass: 'icon',
-	name: function() {return this.opts.name},
 	willAppend: function() {
-		this.el.css('width', this.opts.width || GridBackground.gridSize);
-		this.el.css('height', this.opts.height || GridBackground.gridSize);
+		this.el.css('width', this.opts.width + "px");
+		this.el.css('height', this.opts.height + "px");
+		this.base();
 	},
 });
 

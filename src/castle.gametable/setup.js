@@ -4,21 +4,21 @@ GamersTable.registerScenario('Castle Assault', function() {
 			bgUrl: 'castle.gametable/images/background.png',
 			css: {'background-repeat': 'no-repeat'}
 	}),
-	new GridBackground();
+	new Grid();
 	
 	//add some guys
 	new Person({
 		bgUrl: 'images/icons/orc.png',
 		css: {
-			left: (GridBackground.gridSize * 2) + 'px',
-			top: (GridBackground.gridSize * 3) + 'px'
+			left: (Grid.size * 2) + 'px',
+			top: (Grid.size * 3) + 'px'
 		}
 	});
 	new Person({
 		bgUrl: 'images/icons/orc.png',
 		css: {
-			left: (GridBackground.gridSize * 7) + 'px',
-			top: (GridBackground.gridSize * 3) + 'px'
+			left: (Grid.size * 7) + 'px',
+			top: (Grid.size * 3) + 'px'
 		}
 	});
 })

@@ -226,6 +226,7 @@ header h1, header h2 {
 /* Game Objects */
 .game-object {
 	position: absolute;
+	background-size: 100%;
 }
 
 .game-object.transitioning {
