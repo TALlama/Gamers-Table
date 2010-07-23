@@ -3,15 +3,29 @@ var KeyboardShortcuts = {
 		 8: "BACKSPACE",
 		13: "RETURN",
 		27: "ESC",
+		33: "PAGEUP",
+		34: "PAGEDOWN",
+		35: "END",
+		36: "HOME",
 		37: "LEFT",
 		38: "UP",
 		39: "RIGHT",
 		40: "DOWN",
-		46: "DELETE",
-		36: "HOME",
-		35: "END",
-		33: "PAGEUP",
-		34: "PAGEDOWN"
+		46: "DELETE"
+	},
+	friendlyNames: {
+		 8: "backspace",
+		13: "return",
+		27: "escape",
+		33: "pageup",
+		34: "pagedown",
+		35: "end",
+		36: "home",
+		37: "left",
+		38: "up",
+		39: "right",
+		40: "down",
+		46: "delete"
 	},
 	isVisible: function(charCode) {
 		if (charCode in KeyboardShortcuts.InvisibleCharCodes) return false;
@@ -51,6 +65,10 @@ var KeyboardShortcuts = {
 		code = KeyboardShortcuts.isVisible(code)
 			? String.fromCharCode(code).toLowerCase()
 			: code;
+		
+		if (KeyboardShortcuts.friendlyNames[code]) {
+			code = KeyboardShortcuts.friendlyNames[code];
+		}
 	
 		if (event.metaKey) code = "meta-" + code;
 		if (event.shiftKey) code = "shift-" + code;

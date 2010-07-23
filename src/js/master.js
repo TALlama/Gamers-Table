@@ -232,7 +232,7 @@ var PopupMenu = Base.extend({
 		$('.menu.popped li:nth-child(1)').addClass('selected');
 	},
 	shortcuts: {
-		'40': function(event) {
+		'down': function(event) {
 			event.preventDefault();
 			event.stopPropagation();
 		
@@ -244,7 +244,7 @@ var PopupMenu = Base.extend({
 			next.addClass('selected');
 			return false;
 		},
-		'38': function(event) {
+		'up': function(event) {
 			event.preventDefault();
 			event.stopPropagation();
 		
@@ -256,7 +256,7 @@ var PopupMenu = Base.extend({
 			next.addClass('selected');
 			return false;
 		},
-		'13': function(event) {
+		'return': function(event) {
 			event.preventDefault();
 			event.stopPropagation();
 			
@@ -267,7 +267,7 @@ var PopupMenu = Base.extend({
 			}
 			return false;
 		},
-		'27': function() {
+		'escape': function() {
 			event.preventDefault();
 			event.stopPropagation();
 		
@@ -846,26 +846,26 @@ var Person = Icon.extend({
 		var person = this;
 		
 		return {
-			'40': function() {
+			'down': function() {
 				person.moveBy(Grid.size, 0);
 				return false;
 			},
-			'38': function() {
+			'up': function() {
 				person.moveBy(-Grid.size, 0);
 				return false;
 			},
-			'39': function() {
+			'right': function() {
 				person.moveBy(0, Grid.size);
 				return false;
 			},
-			'37': function() {
+			'left': function() {
 				person.moveBy(0, -Grid.size);
 				return false;
 			},
-			'8': function() {person.trash(); return false},
-			'46': function() {person.trash(); return false},
-			'27': function() {GameObject.focusOn(null); return false},
-			'13': function() {person.showContextMenu(); return false}
+			'delete': function() {person.trash(); return false},
+			'backspace': function() {person.trash(); return false},
+			'escape': function() {GameObject.focusOn(null); return false},
+			'return': function() {person.showContextMenu(); return false}
 		}
 	}
 });
