@@ -24,7 +24,7 @@ jQuery.fn.uniqueId = function(prefix, clobber) {
 	if (prefix == null) prefix = "id-";
 	
 	return this.each(function(){
-		if ( !this.id || clobber )
+		if (!this.id || clobber)
 			this.id = prefix + (++jQuery.fn.uniqueId.index);
 	}); 
 }; 
@@ -91,7 +91,7 @@ jQuery.fn.animationEnd = function(callback) {
 }
 
 function debug(msg) {
-	$('#gameboard').append("<p>" + msg + "</p>");
+	$('#gameboard').append("<p class='log'>" + msg + "</p>");
 }
 
 $(document).ready(function() {
@@ -414,7 +414,7 @@ $(document).ready(function() {
 	GameBoard.global.resize();
 });
 
-var RollBox = GameBoard.extend({
+var Rollbox = GameBoard.extend({
 	constructor: function(opts) {
 		var rollbox = this;
 		this.opts = opts = opts || {};
@@ -453,36 +453,53 @@ var RollBox = GameBoard.extend({
 		});
 		rollbox.updateTotal();
 	},
-	remove: function() {
+	remove: function(opts) {
 		var rollbox = this;
-		this.el.fadeOut(300, function() {
-			rollbox.el.remove();
+		opts = jQuery.extendIf(opts, {
+			fadeTime: 300
 		});
+		
+		function cleanup() {
+			rollbox.el.remove();
+		}
+		
+		if (opts.fadeTime > 0) this.el.fadeOut(opts.fadeTime, cleanup);
+		else cleanup();
 	},
 	updateTotal: function() {
 		var total = 0;
 		$('.rollbox .number-token').each(function() {
-			total += Number($(this).text());
+			total += Number(this.controller.number);
 		});
 		this.total.text(total);
 	}
 });
-RollBox.show = function(roll) {
+Rollbox.show = function(roll) {
+	roll = roll.replace(/\+\s/g, ' +');
+	roll = roll.replace(/\-\s/g, ' -');
+	
 	var dice = [];
 	var tokens = [];
-	var pattern = /(\d+)d(\d+)/;
-	jQuery.each(roll.split(/\s/), function() {
+	var pattern = /(-)?(\d+)?d(\d+)/;
+	jQuery.each(roll.split(/\s+/), function() {
 		var match = this.match(pattern);
 		if (match) {
-			for (var i = 0; i < match[1]; ++i) dice.push(match[2]);
+			var isNeg = !!match[1]
+			var num = match[2] || 1;
+			var sides = match[3];
+			if (isNeg) sides = sides * -1;
+			
+			for (var i = 0; i < num; ++i) dice.push(sides);
 		} else if (this.match(/-?\d+/)) {
 			tokens.push(Number(this));
+		} else if (this.match(/^\s*$/)) {
+			//ignore empty space
 		} else {
 			alert('Unknown die: ' + this);
 			return;
 		}
 	});
-	new RollBox({title: roll, dice: dice, tokens: tokens});
+	return new Rollbox({title: roll, dice: dice, tokens: tokens});
 }
 
 var GameObject = Dispatcher.extend({
@@ -560,9 +577,17 @@ var NumberToken = GameObject.extend({
 	},
 	didAppend: function() {
 		var token = this;
-		token.el.text(this.number);
+		if (this.number < 0) {
+			token.el.text(-this.number);
+			token.el.addClass('negative');
+		} else {
+			token.el.text(this.number);
+		}
 		token.el.addClass('number-token');
 		this.base();
+	},
+	isNegative: function() {
+		return this.number < 0;
 	}
 });
 
@@ -609,10 +634,14 @@ var Die = NumberToken.extend({
 		}], {contextEl: die.el});
 	},
 	redraw: function() {
-		this.el.text(this.number);
+		this.el.removeClass('negative');
+		if (this.isNegative()) this.el.addClass('negative');
+		
+		this.el.text(Math.abs(this.number));
 	},
 	nextResult: function() {
-		this.number = Random.intBelow(this.sides) + 1;
+		this.number = Random.intBelow(this.sides);
+		this.number += this.sides > 0 ? 1 : 0;
 	},
 	place: function() {
 		this.el.css('webkitTransform', "rotate(" + Random.intBetween(-60, 60) + "deg)");
@@ -755,10 +784,10 @@ var Person = Icon.extend({
 			name: 'Roll',
 			submenu: [{
 				name: 'd20',
-				handler: function() {new RollBox({dice: [20]})}
+				handler: function() {new Rollbox({dice: [20]})}
 			},{
 				name: 'd6',
-				handler: function() {new RollBox({dice: [6]})}
+				handler: function() {new Rollbox({dice: [6]})}
 			}]
 		});
 	},
@@ -840,6 +869,6 @@ KeyboardShortcuts.register('shift-»', function(event) {
 	window.addItemMenuButton.focus();
 });
 KeyboardShortcuts.register('r', function(event) {
-	var roll = prompt('Roll what?');
-	RollBox.show(roll);
+	var roll = prompt('Roll what?', 'd20');
+	Rollbox.show(roll);
 });

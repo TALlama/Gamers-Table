@@ -249,17 +249,22 @@ header h1, header h2 {
 	height: 30px;
 }
 
+.number-token.negative {
+	color: rgba(255, 50, 50, 1);
+}
+
 /* Dice */
 .die {
 	background-color: rgba(0,0,0,0);
 	border-radius: 0;
 	background-repeat: no-repeat;
 }
-.die.d4 { background-image: url('../images/dice/d4.png')}
-.die.d6 { background-image: url('../images/dice/d6.png')}
-.die.d8 { background-image: url('../images/dice/d8.png')}
-.die.d10 { background-image: url('../images/dice/d10.png')}
-.die.d20 { background-image: url('../images/dice/d20.png')}
+.die.d4, .die.d-4 { background-image: url('../images/dice/d4.png')}
+.die.d6, .die.d-6 { background-image: url('../images/dice/d6.png')}
+.die.d8, .die.d-8 { background-image: url('../images/dice/d8.png')}
+.die.d10, .die.d-10 { background-image: url('../images/dice/d10.png')}
+.die.d12, .die.d-12 { background-image: url('../images/dice/d12.png')}
+.die.d20, .die.d-20 { background-image: url('../images/dice/d20.png')}
 
 .die.falling-a {
 	-webkit-animation-name: falling-die-a;

@@ -48,6 +48,65 @@ tests.dice = function() {
 	testDieCreation(10);
 	testDieCreation(12);
 	testDieCreation(20);
+	
+	test("Rollbox with Dice", function() {
+		var rollbox = Rollbox.show("1d4 2d6 3d8 4d10 5d12 6d20");
+		equals($('.d4').length, 1, "Should find one d4");
+		equals($('.d6').length, 2, "Should find two d6s");
+		equals($('.d8').length, 3, "Should find three d8s");
+		equals($('.d10').length, 4, "Should find four d10s");
+		equals($('.d12').length, 5, "Should find five d12s");
+		equals($('.d20').length, 6, "Should find six d20s");
+		rollbox.remove({fadeTime: 0});
+	});
+	test("Rollbox with Negative Die", function() {
+		var rollbox = Rollbox.show("-1d4");
+		equals($('.d-4').length, 1, "Should find one d4");
+		ok($('.d-4').hasClass('negative'), "Should be marked as negative");
+		ok(Number($('.d-4').text()) > 0, "Token should display the absolute value");
+		ok($('.d-4')[0].controller.number < 0, "Actual value should be negative");
+		rollbox.remove({fadeTime: 0});
+	});
+	test("Rollbox with Tokens", function() {
+		var rollbox = Rollbox.show("4");
+		equals($('.number-token').length, 1, "Should find one token");
+		equals($('.number-token').text(), 4, "Token should have the value given");
+		rollbox.remove({fadeTime: 0});
+	});
+	test("Rollbox with Negative Tokens", function() {
+		var rollbox = Rollbox.show("-4");
+		equals($('.number-token').length, 1, "Should find one token");
+		ok($('.number-token').hasClass('negative'), "Should be marked as negative");
+		equals($('.number-token').text(), 4, "Token should display the absolute value");
+		rollbox.remove({fadeTime: 0});
+	});
+	
+	function testRollboxWithAddedToken(name, roll) {
+		test(name, function() {
+			var rollbox = Rollbox.show(roll);
+			equals($('.d4').length, 1, "Should find one d4");
+			equals($('.number-token:not(.die)').length, 1, "Should find one token");
+			equals($('.number-token:not(.die)').text(), 4, "Token should display the absolute value");
+			rollbox.remove({fadeTime: 0});
+		});
+	}
+	function testRollboxWithSubtractedToken(name, roll) {
+		test(name, function() {
+			var rollbox = Rollbox.show(roll);
+			equals($('.d4').length, 1, "Should find one d4");
+			equals($('.number-token:not(.die)').length, 1, "Should find one token");
+			equals($('.number-token:not(.die)').text(), 4, "Token should display the absolute value");
+			equals($('.number-token:not(.die)')[0].controller.number, -4, 
+				"Token should keep real value");
+			rollbox.remove({fadeTime: 0});
+		});
+	}
+	testRollboxWithAddedToken("Rollbox with Added Token (space before)", "1d4 +4");
+	testRollboxWithAddedToken("Rollbox with Added Token (space after)", "1d4+ 4");
+	testRollboxWithAddedToken("Rollbox with Added Token (space before and after)", "1d4 + 4");
+	testRollboxWithSubtractedToken("Rollbox with Subtracted Token (space before)", "1d4 -4");
+	testRollboxWithSubtractedToken("Rollbox with Subtracted Token (space after)", "1d4- 4");
+	testRollboxWithSubtractedToken("Rollbox with Subtracted Token (space before and after)", "1d4 - 4");
 };
 tests.notes = function() {
 	module("Notes", {
