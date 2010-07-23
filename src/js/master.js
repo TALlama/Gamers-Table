@@ -831,12 +831,14 @@ var Person = Icon.extend({
 	},
 	cssClass: 'person',
 	willAppend: function() {
-		this.el.click(function() {
-			if (GameObject.focusedObject() == this)
-				this.showContextMenu();
+		var person = this;
+		function focusOrPopMenu() {
+			if (GameObject.focusedObject() == person)
+				person.showContextMenu();
 			else
-				GameObject.focusOn(this);
-		});
+				GameObject.focusOn(person);
+		}
+		this.el.click(focusOrPopMenu).bind('touchend', focusOrPopMenu);
 		this.base();
 	},
 	didAppend: function() {
