@@ -567,8 +567,44 @@ var GameObject = Dispatcher.extend({
 		if (confirm("Trash " + this.name() + "?")) {
 			this.remove();
 		}
+	},
+	moveBy: function(dx, dy) {
+		var offset = this.el.offset();
+		this.moveTo(offset.top + Number(dx), offset.left + Number(dy));
+	},
+	moveTo: function(x, y) {
+		x = Number(x); y = Number(y);
+		if (x < 0) x = 0;
+		if (y < 0) y = 0;
+		
+		//debug("moveTo(" + x + "," + y + ")");
+		this.el.css("top", x + "px");
+		this.el.css("left", y + "px");
+		$.scrollTo({top: x, left: y});
+	},
+	keyboardShortcuts: function() {return {}},
+	showContextMenu: function() {
+		if (this.contextMenu) {
+			this.contextMenu.pop();
+			return this.contextMenu;
+		} else {
+			return {pop: function() {}, focus: function() {}};
+		}
 	}
-})
+});
+jQuery.extend(GameObject, {
+	focusOn: function(obj) {
+		GameObject.focused = (obj && obj.controller) ? obj.controller : obj;
+
+		$('.game-object.focused').removeClass('focused');
+		if (GameObject.focused && GameObject.focused.el) {
+			GameObject.focused.el.addClass('focused');
+		}
+	},
+	focusedObject: function(obj) {
+		return GameObject.focused;
+	}
+});
 
 var NumberToken = GameObject.extend({
 	constructor: function(number, opts) {
@@ -764,7 +800,7 @@ var Icon = GameObject.extend({
 		}));
 		
 		var icon = this;
-		this.cMenu = new ContextualMenu(icon.el, [{
+		this.contextMenu = new ContextualMenu(icon.el, [{
 			name: 'Trash',
 			handler: function() {icon.trash()}
 		}]);
@@ -782,7 +818,7 @@ var Person = Icon.extend({
 		this.base(opts);
 		
 		var icon = this;
-		this.cMenu.items.unshift({
+		this.contextMenu.items.unshift({
 			name: 'Roll',
 			submenu: [{
 				name: 'd20',
@@ -793,7 +829,45 @@ var Person = Icon.extend({
 			}]
 		});
 	},
-	cssClass: 'person'
+	cssClass: 'person',
+	willAppend: function() {
+		this.el.click(function() {
+			if (GameObject.focusedObject() == this)
+				this.showContextMenu();
+			else
+				GameObject.focusOn(this);
+		});
+		this.base();
+	},
+	didAppend: function() {
+		GameObject.focusOn(this);
+	},
+	keyboardShortcuts: function() {
+		var person = this;
+		
+		return {
+			'40': function() {
+				person.moveBy(Grid.size, 0);
+				return false;
+			},
+			'38': function() {
+				person.moveBy(-Grid.size, 0);
+				return false;
+			},
+			'39': function() {
+				person.moveBy(0, Grid.size);
+				return false;
+			},
+			'37': function() {
+				person.moveBy(0, -Grid.size);
+				return false;
+			},
+			'8': function() {person.trash(); return false},
+			'46': function() {person.trash(); return false},
+			'27': function() {GameObject.focusOn(null); return false},
+			'13': function() {person.showContextMenu(); return false}
+		}
+	}
 });
 
 var GamersTable = {
@@ -873,4 +947,8 @@ KeyboardShortcuts.register('shift-»', function(event) {
 KeyboardShortcuts.register('r', function(event) {
 	var roll = prompt('Roll what?', 'd20');
 	Rollbox.show(roll);
+});
+KeyboardShortcuts.impose(function() {
+	var fo = GameObject.focusedObject();
+	return fo ? fo.keyboardShortcuts() : {};
 });

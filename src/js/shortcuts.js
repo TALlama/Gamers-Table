@@ -60,12 +60,14 @@ var KeyboardShortcuts = {
 		var action = null;
 		//find it in the imposed shortcuts
 		for (var i = 0; i < KeyboardShortcuts.imposedShortcuts.length && !action; ++i) {
-			action = KeyboardShortcuts.imposedShortcuts[i][code];
+			var imposedShortcuts = KeyboardShortcuts.imposedShortcuts[i];
+			if (typeof(imposedShortcuts) == "function") imposedShortcuts = imposedShortcuts();
+			action = imposedShortcuts[code];
 		}
 		//find it in the globals
 		action = action || KeyboardShortcuts.shortcuts[code];
 		KeyboardShortcuts.log('Keyboard shortcut: ' + code + (action ? ('\n' + action) : ''));
-		if (action) action(event);
+		return (action) ? action(event) : true;
 	}
 };
 

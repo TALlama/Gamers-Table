@@ -227,11 +227,19 @@ header h1, header h2 {
 .game-object {
 	position: absolute;
 	background-size: 100%;
+	
+	-webkit-transition: -webkit-box-shadow .3s linear;
 }
 
 .game-object.transitioning {
 	-webkit-transition-property: top, left, webkitTransform;
 	-webkit-transition-duration: 1s;
+}
+
+.game-object.focused {
+	-webkit-box-shadow: 0px 0px 100px rgba(00, 255, 255, 1);
+	-moz-box-shadow: 0px 0px 100px rgba(00, 255, 255, 1);
+	box-shadow: 0px 0px 100px rgba(00, 255, 255, 1);
 }
 
 /* Number Tokens */
