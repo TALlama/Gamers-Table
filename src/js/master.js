@@ -383,10 +383,13 @@ var Dispatcher = Base.extend({
 
 var GameBoard = Dispatcher.extend({
 	constructor: function(el) {
-		this.el = el;
+		var gameboard = this;
+		this.el = $(el);
+		
+		if (this.el[0].id == 'gameboard') new Capturebox(gameboard);
 	},
 	height: function(){
-		if (this.el.id != 'gameboard') return this.el.height();
+		if (this.el[0].id != 'gameboard') return this.el.height();
 		
 		//gameboard fills the screen
 		var D = document;
@@ -397,13 +400,13 @@ var GameBoard = Dispatcher.extend({
 		);
 	},
 	size: function() {
-		return {w: $(this.el).width(), h: this.height()};
+		return {w: this.el.width(), h: this.height()};
 	},
 	offset: function() {
 		return this.el.offset();
 	},
 	resize: function() {
-		$(this.el).css('height', this.height() + 'px');
+		this.el.css('height', this.height() + 'px');
 	},
 	didAdd: function(arg) {
 		this.bind('didAdd', arg);
@@ -515,6 +518,85 @@ Rollbox.show = function(roll) {
 	return new Rollbox({title: roll, dice: dice, tokens: tokens});
 }
 
+var Capturebox = Dispatcher.extend({
+	constructor: function(gameboard) {
+		$(document).bind("mousedown", {gb: gameboard, cb: this}, this.startCapture);
+	},
+	startCapture: function(event) {
+		var gameboard = event.data.gb;
+		
+		if (!event.shiftKey) return;
+		event.preventDefault();
+		
+		var boundingBox = $('<div class="select-box"></div>').appendTo(gameboard.el);
+		boundingBox.offset({top: event.pageY, left: event.pageX});
+		boundingBox.width(0);
+		boundingBox.height(0);
+		
+		var data = {
+			gb: gameboard, cb: event.data.cb,
+			bb: boundingBox, bbx: event.pageX, bby: event.pageY
+		};
+		$(document).bind("mouseup", data, event.data.cb.endCapture);
+		$(document).bind("mousemove", data, event.data.cb.moveCapture);
+	},
+	endCapture: function(event) {
+		var gameboard = event.data.gb;
+		var boundingBox = event.data.bb;
+		
+		$(document).unbind("mouseup", event.data.cb.endCapture);
+		$(document).unbind("mousemove", event.data.cb.moveCapture);
+		
+		$('.number-token.focused').removeClass("focused");
+		
+		var captured = [];
+		var bbDim = boundingBox.offset();
+		bbDim.width = boundingBox.width();
+		bbDim.height = boundingBox.height();
+		bbDim.right = bbDim.left + bbDim.width;
+		bbDim.bottom = bbDim.top + bbDim.height;
+		//debug("{(" + bbDim.left + ", " + bbDim.top + "), (" + bbDim.right + ", " + bbDim.bottom + ")}");
+		gameboard.el.find(".number-token").each(function() {
+			var nt = $(this);
+			var ntOffset = nt.offset();
+			
+			if (ntOffset.top >= bbDim.top
+			&& ntOffset.top <= bbDim.bottom
+			&& ntOffset.left >= bbDim.left
+			&& ntOffset.left <= bbDim.right) {
+				//debug("{(" + ntOffset.left + ", " + ntOffset.top + "), (" + ntOffset.right + ", " + ntOffset.bottom + ")}");
+				captured.push(nt);
+				nt.addClass("focused");
+			}
+		});
+		
+		boundingBox.fadeOut(500);
+		KeyboardShortcuts.impose(Capturebox.dieGroupKeyboardShortcuts);
+		GameObject.focusChanged(function() {
+			KeyboardShortcuts.unimpose(Capturebox.dieGroupKeyboardShortcuts);
+		})
+	},
+	moveCapture: function(event) {
+		var gameboard = event.data.gb;
+		var boundingBox = event.data.bb;
+	
+		boundingBox.offset({
+			top: Math.min(event.data.bby, event.pageY), 
+			left: Math.min(event.data.bbx, event.pageX)
+		});
+		boundingBox.width(Math.abs(event.pageX - event.data.bbx));
+		boundingBox.height(Math.abs(event.pageY - event.data.bby));
+	}
+});
+Capturebox.dieGroupKeyboardShortcuts = function() {
+	var focusedDice = $('.die.focused');
+	return focusedDice ? {
+		'return': function() {
+			focusedDice.each(function() {this.controller.roll()})
+		}
+	} : {};
+};
+
 var GameObject = Dispatcher.extend({
 	constructor: function(opts) {
 		var gameObject = this;
@@ -542,7 +624,7 @@ var GameObject = Dispatcher.extend({
 			} else {	
 				this.el.draggable({
 					handle: gameObject.dragHandle(),
-					containment: this.opts.board.el
+					containment: this.opts.board.el[0]
 				});
 			}
 		}
@@ -612,10 +694,15 @@ jQuery.extend(GameObject, {
 		$('.game-object.focused').removeClass('focused');
 		if (GameObject.focused && GameObject.focused.el) {
 			GameObject.focused.el.addClass('focused');
+			GameObject.focusChanged();
 		}
 	},
 	focusedObject: function(obj) {
 		return GameObject.focused;
+	},
+	focusChanged: function() {
+		this.dispatcher = this.dispatcher || new Dispatcher();
+		this.dispatcher.bind("focusChanged", arguments[0], arguments[1]);
 	}
 });
 

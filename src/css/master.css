@@ -120,6 +120,11 @@ header h1, header h2 {
 	margin-right: .5em;
 }
 
+.log {
+	float: left;
+	clear: left;
+}
+
 #gameboard {
 	z-index: -1;
 }
@@ -240,6 +245,15 @@ header h1, header h2 {
 	-webkit-box-shadow: 0px 0px 100px rgba(00, 255, 255, 1);
 	-moz-box-shadow: 0px 0px 100px rgba(00, 255, 255, 1);
 	box-shadow: 0px 0px 100px rgba(00, 255, 255, 1);
+}
+
+.die.focused {
+	background-color: rgba(00, 255, 255, 1);
+}
+
+.select-box {
+	background-color: rgba(0, 0, 255, .2);
+	border: 1px dashed rgba(0, 0, 255, .4);
 }
 
 /* Number Tokens */

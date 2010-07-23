@@ -25,6 +25,24 @@ tests.util = function() {
 		same(into.e, {x: 10, y: 20}, 'Should update deep objects.');
 	});
 };
+tests.gameObjects = function() {
+	module("Game Objects", {
+		teardown: testHelpers.removeAllGameObjects
+	});
+	
+	test("Focus tracking", 4, function() {
+		var obj = new GameObject();
+		equals($('.game-object').length, 1, "Should have created an object");
+		GameObject.focusOn(obj);
+		equals($('.game-object.focused').length, 1, "Should be focused");
+		GameObject.focusOn(null);
+		equals($('.game-object.focused').length, 0, "Nothing should be focused");
+		GameObject.focusChanged(function() {
+			ok("Callback called.")
+		});
+		GameObject.focusOn(obj);
+	})
+}
 tests.dice = function() {
 	module("Dice", {
 		teardown: testHelpers.removeAllGameObjects.ofClass('die')
