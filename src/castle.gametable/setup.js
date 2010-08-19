@@ -8,6 +8,7 @@ GamersTable.registerScenario('Castle Assault', function() {
 	
 	//add some guys
 	new Person({
+		name: 'Gruk (orc)',
 		bgUrl: 'images/icons/orc.png',
 		css: {
 			left: (Grid.size * 2) + 'px',
@@ -15,6 +16,7 @@ GamersTable.registerScenario('Castle Assault', function() {
 		}
 	});
 	new Person({
+		name: 'Kurg (orc)',
 		bgUrl: 'images/icons/orc.png',
 		css: {
 			left: (Grid.size * 7) + 'px',

@@ -198,8 +198,53 @@ header h1, header h2 {
 	background-color: black;
 }
 
+/* UI Elements */
+.dialog {
+	z-index: 10000;
+	
+	float: left;
+	margin: 30%;
+	
+	border: .2em solid rgba(200, 200, 200, .4);
+	background-color: rgba(230, 230, 230, .8);
+	width: 40%;
+	height: 40%;
+}
+
+.dialog h1 {
+	font-size: 120%;
+	background-color: rgba(230, 230, 230, .8);
+}
+
+.dialog .body {
+	padding: .2em .5em .2em .5em;
+}
+
+.dialog input {
+	display: block;
+}
+
+.dialog input[type='text'] {
+	width: 95%;
+}
+
+.dialog button {
+	float: right;
+}
+
+.dialog.prompt {
+	width: 20%;
+	height: 10%;
+}
+
+.searchbox input {
+	width: 98%;
+}
+
 /* Game Boards */
 .rollbox {
+	z-index: 9000;
+
 	position: absolute;
 	top: 30%;
 	bottom: 30%;
@@ -245,6 +290,16 @@ header h1, header h2 {
 	-webkit-box-shadow: 0px 0px 100px rgba(00, 255, 255, 1);
 	-moz-box-shadow: 0px 0px 100px rgba(00, 255, 255, 1);
 	box-shadow: 0px 0px 100px rgba(00, 255, 255, 1);
+}
+
+.matches-search {
+	-webkit-box-shadow: 0px 0px 100px rgba(00, 255, 255, 1);
+	-moz-box-shadow: 0px 0px 100px rgba(00, 255, 255, 1);
+	box-shadow: 0px 0px 100px rgba(00, 255, 255, 1);
+}
+
+.does-not-match-search {
+	opacity: .5;
 }
 
 .die.focused {

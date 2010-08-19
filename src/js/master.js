@@ -386,6 +386,8 @@ var GameBoard = Dispatcher.extend({
 		var gameboard = this;
 		this.el = $(el);
 		
+		this.el[0].controller = gameboard;
+		
 		if (this.el[0].id == 'gameboard') new Capturebox(gameboard);
 	},
 	height: function(){
@@ -511,7 +513,9 @@ Rollbox.show = function(roll) {
 		} else if (this.match(/^\s*$/)) {
 			//ignore empty space
 		} else {
-			alert('Unknown die: ' + this);
+			GamersTable.alert({
+				title: 'Unknown die',
+				text: 'Bad die: ' + this});
 			return;
 		}
 	});
@@ -634,6 +638,11 @@ var GameObject = Dispatcher.extend({
 	},
 	tagName: 'div',
 	name: function() {return this.opts.name || 'this'},
+	matches: function(pattern) {
+		return this.opts.name
+			? this.opts.name.toLowerCase().indexOf(pattern.toLowerCase()) > -1
+			: false;
+	},
 	dragHandle: function() {return null},
 	willAppend: function(el) {},
 	didAppend: function(el) {},
@@ -1023,6 +1032,166 @@ var GamersTable = {
 	}
 }
 
+GamersTable.Dialog = Dispatcher.extend({
+	constructor: function(opts) {
+		var dialog = this;
+		
+		dialog.opts = opts = jQuery.extendIf(opts, {
+			title: "Gamer's Table",
+			containment: 'window'
+		});
+	
+		dialog.el = $('<section class="dialog"/>');
+		dialog.el.draggable({
+			dragHandle: 'h1'});
+		var title = $("<h1 class='title'/>").
+			text(opts.title).
+			appendTo(dialog.el);
+		$("<button>X</button>").
+			addClass('close').
+			appendTo(title).
+			click(function() {
+				dialog.remove();
+			});
+		dialog.body = $('<section class="body">').appendTo(dialog.el);
+	},
+	show: function() {
+		this.el.prependTo(document.body);
+	},
+	remove: function() {
+		this.bind('close');
+		this.el.remove();
+	}
+});
+
+GamersTable.Prompt = GamersTable.Dialog.extend({
+	constructor: function(opts) {
+		var prompt = this;
+		
+		prompt.opts = opts = jQuery.extendIf(opts, {
+			title: "Gamer's Table",
+			question: '',
+			defaultAnswer: '',
+			buttonText: 'Go',
+			callback: function() {},
+		});
+		
+		this.base(opts);
+		
+		prompt.el.addClass('prompt');
+		$("<p class='question'/>").
+			text(opts.question).
+			appendTo(prompt.body);
+		prompt.answerInput = $("<input type='text' class='answer'/>").
+			attr('value', opts.defaultAnswer).
+			appendTo(prompt.body).
+			focus(function() {this.select()}).
+			keydown(function(e) {
+				if (e.which == 10 || e.which == 13) {
+					prompt.actAndRemove();
+				} else if (e.which == 27) {
+					prompt.remove();
+				}
+			});
+		$("<button class='go'/>").
+			text(opts.buttonText).
+			appendTo(prompt.body).
+			click(function() {
+				prompt.actAndRemove()
+			});
+	},
+	show: function() {
+		this.base();
+		this.answerInput.focus();
+	},
+	actAndRemove: function() {
+		var answer = this.answerInput.attr('value');
+		this.opts.callback(answer);
+		this.remove();
+	}
+});
+GamersTable.prompt = function(opts) {
+	new GamersTable.Prompt(opts).show();
+}
+
+GamersTable.Alert = GamersTable.Dialog.extend({
+	constructor: function(opts) {
+		var alert = this;
+		
+		alert.opts = opts = jQuery.extendIf(opts, {
+			title: "Gamer's Table",
+			text: '',
+			buttonText: 'OK'
+		});
+		
+		this.base(opts);
+		
+		alert.el.addClass('prompt');
+		$("<p class='text'/>").
+			text(opts.text).
+			appendTo(alert.body);
+		$("<button class='ok'/>").
+			text(opts.buttonText).
+			appendTo(alert.body).
+			click(function() {
+				alert.remove()
+			});
+	}
+});
+GamersTable.alert = function(opts) {
+	new GamersTable.Alert(opts).show();
+}
+
+GamersTable.SearchBox = GamersTable.Dialog.extend({
+	constructor: function(opts) {
+		var searchBox = this;
+		
+		searchBox.opts = opts = jQuery.extendIf(opts, {
+			title: "Search"
+		});
+		
+		this.base(opts);
+		searchBox.el.addClass('searchbox');
+		searchBox.input = $('<input>').
+			appendTo(searchBox.body).
+			keyup(function(e) {
+				if (e.which == 10 || e.which == 13 || e.which == 27) {
+					searchBox.remove();
+					return;
+				}
+				
+				searchBox.highlightMatches($(this).attr('value'));
+			});
+	},
+	show: function() {
+		this.base();
+		this.input.focus();
+	},
+	remove: function() {
+		$('.does-not-match-search, .matches-search').
+			removeClass('does-not-match-search').
+			removeClass('matches-search');
+		this.base();
+	},
+	highlightMatches: function(pattern) {
+		console.log("Watching for pattern: " + pattern);
+		$('.game-object').each(function() {
+			if (this.controller && this.controller.matches && this.controller.matches(pattern)) {
+				$(this).removeClass('does-not-match-search').addClass('matches-search');
+			} else {
+				$(this).addClass('does-not-match-search').removeClass('matches-search');
+			}
+		});
+
+		var matches = $('.game-object.matches-search');
+		if (matches.length == 1) {
+			GameObject.focusOn(matches[0]);
+		} else if (matches.length == 0) {
+			GameObject.focusOn(null);
+		}
+	}
+})
+
 if (jQuery.query.get('test') == "on"
 || decodeURIComponent(document.location.search).match(/module:/)) {
 	document.write('<link rel="stylesheet" href="js/lib/jquery/qunit.css" type="text/css" media="screen" />');
@@ -1048,10 +1217,23 @@ KeyboardShortcuts.register('shift-»', function(event) {
 	window.addItemMenuButton.focus();
 });
 KeyboardShortcuts.register('r', function(event) {
-	var roll = prompt('Roll what?', 'd20');
-	Rollbox.show(roll);
+	event.preventDefault();
+	GamersTable.prompt({
+		title: 'Roll',
+		question: 'Roll what?',
+		defaultAnswer: 'd20',
+		buttonText: 'Roll',
+		callback: function(roll) {
+			Rollbox.show(roll)
+		}
+	});
+});
+KeyboardShortcuts.register(' ', function(event) {
+	event.preventDefault();
+	new GamersTable.SearchBox().show();
 });
 KeyboardShortcuts.impose(function() {
 	var fo = GameObject.focusedObject();
 	return fo ? fo.keyboardShortcuts() : {};
 });
+

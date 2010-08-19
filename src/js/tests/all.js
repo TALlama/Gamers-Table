@@ -178,10 +178,109 @@ tests.grids = function() {
 		ok(bg, "Should have the a URL for the background: " + bg);
 	});
 }
+tests.globalKeyboardShortcuts = function() {
+	var eventWith = function(eventType, opts) {
+		return jQuery.extend(jQuery.Event(eventType), opts);
+	};
+
+	var fireKeyboardShortcut = function(code) {
+		var handlers = KeyboardShortcuts.handlersFor(code);
+		equals(handlers.length, 1, "Should find a handler for '" + code + "'");
+		handlers[0](eventWith('keydown'));
+	};
+	
+	module("Global Keyboard Shortcuts");
+	test("+ shows the add menu", function() {
+		fireKeyboardShortcut("shift-»");
+		
+		equals($('.menu.popped').length, 1, "Should have popped the menu");
+		$('.menu.popped')[0].controller.unpop();
+	});
+	
+	test("r rolls dice", function() {
+		fireKeyboardShortcut("r");
+		
+		equals($('.prompt').length, 1, "Should have shown a prompt for dice array");
+		
+		//click the button to roll whatever the default is
+		$('.prompt button.go').click();
+		
+		equals($('.rollbox').length, 1, "Should have shown a rollbox");
+		$('.rollbox')[0].controller.remove({fadeTime:0});
+	});
+	test("r prompt is advancable by return", function() {
+		fireKeyboardShortcut("r");
+
+		$('.prompt input').trigger(eventWith('keydown', {which: 10}));
+		equals($('.prompt').length, 0, "Should have dismissed prompt");
+		
+		equals($('.rollbox').length, 1, "Should have shown a rollbox");
+		$('.rollbox')[0].controller.remove({fadeTime:0});
+	});
+	test("r prompt is dismissable by escape", function() {
+		fireKeyboardShortcut("r");
+		
+		$('.prompt input').trigger(eventWith('keydown', {which: 27}));
+		equals($('.prompt').length, 0, "Should have dismissed prompt");
+	});
+	test("space shows the search bar", function() {
+		fireKeyboardShortcut(" ");
+		
+		var leeloo = new Person({name: 'Leeloo'});
+		var orc = new Person({name: 'Orc'});
+		
+		equals($('.searchbox').length, 1, "Should have shown searchbox");
+		equals($('.searchbox input').length, 1, "Should have an input in the searchbox");
+		
+		$('.searchbox input').attr('value', 'l').
+			trigger(eventWith('keyup', {which: "l".charCodeAt(0)}));
+		ok(leeloo.el.hasClass('matches-search'), "Leeloo matches 'l'");
+		ok(orc.el.hasClass('does-not-match-search'), "Orc doesn't match 'l'");
+		equals(leeloo, GameObject.focusedObject(), "Should have focused on Leeloo");
+		
+		//now dismiss
+		$('.searchbox input').trigger(eventWith('keyup', {which: 10}));
+		equals($('.searchbox').length, 0, "Should have dismissed search");
+		equals(leeloo, GameObject.focusedObject(), "Focus should stay on Leeloo");
+		
+		leeloo.remove();
+		orc.remove();
+	});
+	test("space can kill focus", function() {
+		fireKeyboardShortcut(" ");
+		
+		var leeloo = new Person({name: 'Leeloo'});
+		var orc = new Person({name: 'Orc'});
+		
+		equals($('.searchbox').length, 1, "Should have shown searchbox");
+		equals($('.searchbox input').length, 1, "Should have an input in the searchbox");
+		
+		$('.searchbox input').attr('value', 'l').
+			trigger(eventWith('keyup', {which: "l".charCodeAt(0)}));
+		ok(leeloo.el.hasClass('matches-search'), "Leeloo matches 'l'");
+		ok(orc.el.hasClass('does-not-match-search'), "Orc doesn't match 'l'");
+		equals(leeloo, GameObject.focusedObject(), "Should have focused on Leeloo");
+		
+		$('.searchbox input').attr('value', 'lx').
+			trigger(eventWith('keyup', {which: "x".charCodeAt(0)}));
+		ok(leeloo.el.hasClass('does-not-match-search'), "Leeloo doesn't match 'lx'");
+		ok(orc.el.hasClass('does-not-match-search'), "Orc doesn't match 'lx'");
+		equals(GameObject.focusedObject(), null, "Should have removed focus");
+		
+		//now dismiss
+		$('.searchbox input').trigger(eventWith('keyup', {which: 10}));
+		equals($('.searchbox').length, 0, "Should have dismissed search");
+		equals(GameObject.focusedObject(), null, "Should have kept lack of focus");
+		
+		leeloo.remove();
+		orc.remove();
+	});
+};
 
 $(document).ready(function(){
 	for (var suite in tests) tests[suite]();
 	
+	module("Cleanup");
 	test("Clean Slate", function() {
 		var left = $('.game-object');
 		equals(left.length, 0, "Someone left some game objects.");

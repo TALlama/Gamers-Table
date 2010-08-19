@@ -52,7 +52,7 @@ var KeyboardShortcuts = {
 	enableLogging: function() {
 		KeyboardShortcuts.log = function() {console.log(arguments[0])};
 	},
-	dispatch: function(event) {
+	codeFor: function(event) {
 		var targetNodeName = event.target.nodeName;
 		if (targetNodeName == 'INPUT') return;
 		if (targetNodeName == 'SELECT') return;
@@ -75,17 +75,40 @@ var KeyboardShortcuts = {
 		if (event.altKey) code = "alt-" + code;
 		if (event.ctrlKey) code = "control-" + code;
 		
-		var action = null;
+		return code;
+	},
+	handlersFor: function(code) {
+		if (typeof(code) !== "string") code = KeyboardShortcuts.codeFor(code);
+		
+		var handlers = [];
+		handlers.code = code;
+		
 		//find it in the imposed shortcuts
-		for (var i = 0; i < KeyboardShortcuts.imposedShortcuts.length && !action; ++i) {
+		for (var i = 0; i < KeyboardShortcuts.imposedShortcuts.length; ++i) {
 			var imposedShortcuts = KeyboardShortcuts.imposedShortcuts[i];
 			if (typeof(imposedShortcuts) == "function") imposedShortcuts = imposedShortcuts();
-			action = imposedShortcuts[code];
+			var imposedHandler = imposedShortcuts[code];
+			if (imposedHandler) handlers.push(imposedHandler);
 		}
 		//find it in the globals
-		action = action || KeyboardShortcuts.shortcuts[code];
-		KeyboardShortcuts.log('Keyboard shortcut: ' + code + (action ? ('\n' + action) : ''));
-		return (action) ? action(event) : true;
+		var globalHandler = KeyboardShortcuts.shortcuts[code];
+		if (globalHandler) handlers.push(globalHandler);
+		return handlers;
+	},
+	dispatch: function(event) {
+		var handlers = KeyboardShortcuts.handlersFor(event);
+		var retval = true;
+		
+		KeyboardShortcuts.log('Keyboard shortcut: ' + 
+			handlers.code + '\nFound ' + handlers.length + ' keyboard shortcuts');
+		for (var i = 0; i < handlers.length && retval; ++i) {
+			var handler = handlers[i];
+			KeyboardShortcuts.log('Shortcut #' + i + ':\n' + handler);
+			var handlerRetval = handler(event);
+			if (handlerRetval === false) retval = false;
+		}
+		
+		return retval;
 	}
 };
 
