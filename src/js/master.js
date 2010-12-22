@@ -149,7 +149,7 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 			}]);
 		});
 
-		var PopupMenuButton = Base.extend({
+		PopupMenuButton = Base.extend({
 			constructor: function(name, items) {
 				var pmb = this;
 				this.items = items;
@@ -168,7 +168,7 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 			}
 		});
 
-		var PopupMenu = Base.extend({
+		PopupMenu = Base.extend({
 			constructor: function(items, opts) {
 				var popupMenu = this;
 				this.items = items;
@@ -296,7 +296,7 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 		};
 		PopupMenu.hideAll = function() {PopupMenu.hideAllExcept(null)};
 
-		var ContextualMenu = PopupMenu.extend({
+		ContextualMenu = PopupMenu.extend({
 			constructor: function(contextEl, items, opts) {
 				this.contextEl = contextEl;
 				this.base(items, opts);
@@ -358,7 +358,7 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 			},
 		});
 
-		var Random = {
+		Random = {
 			intBetween: function(min, max) {
 				var range = max - min;
 				var diffFromMin = Math.floor(Math.random() * range);
@@ -372,7 +372,7 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 			}
 		}
 
-		var Dispatcher = Base.extend({
+		Dispatcher = Base.extend({
 			bind: function(eventName, arg) {
 				var bindArgs = arguments;
 		
@@ -392,7 +392,7 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 			}
 		});
 
-		var GameBoard = Dispatcher.extend({
+		GameBoard = Dispatcher.extend({
 			constructor: function(el) {
 				var gameboard = this;
 				this.el = $(el);
@@ -430,7 +430,7 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 			GameBoard.global.resize();
 		});
 
-		var Rollbox = GameBoard.extend({
+		Rollbox = GameBoard.extend({
 			constructor: function(opts) {
 				var rollbox = this;
 				this.opts = opts = opts || {};
@@ -533,7 +533,7 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 			return new Rollbox({title: roll, dice: dice, tokens: tokens});
 		}
 
-		var Capturebox = Dispatcher.extend({
+		Capturebox = Dispatcher.extend({
 			constructor: function(gameboard) {
 				$(document).bind("mousedown", {gb: gameboard, cb: this}, this.startCapture);
 			},
@@ -612,7 +612,7 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 			} : {};
 		};
 
-		var GameObject = Dispatcher.extend({
+		GameObject = Dispatcher.extend({
 			constructor: function(opts) {
 				var gameObject = this;
 		
@@ -726,7 +726,7 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 			}
 		});
 
-		var NumberToken = GameObject.extend({
+		NumberToken = GameObject.extend({
 			constructor: function(number, opts) {
 				this.number = Number(number);
 				this.base(opts);
@@ -747,7 +747,7 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 			}
 		});
 
-		var Die = NumberToken.extend({
+		Die = NumberToken.extend({
 			constructor: function(sides, opts) {
 				this.sides = Number(sides);
 				this.base(0, opts);
@@ -817,7 +817,7 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 			}
 		});
 
-		var Note = GameObject.extend({
+		Note = GameObject.extend({
 			constructor: function(opts) {
 				this.opts = opts || {};
 				this.base(opts);
@@ -850,7 +850,7 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 			}
 		});
 
-		var Background = GameObject.extend({
+		Background = GameObject.extend({
 			constructor: function(opts) {
 				this.opts = opts || {};
 				this.opts.undraggable = true;
@@ -871,7 +871,7 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 			},
 		});
 
-		var Grid = GameObject.extend({
+		Grid = GameObject.extend({
 			constructor: function(opts) {
 				this.opts = opts = opts || {};
 				jQuery.extendIf(true, this.opts, {
@@ -912,7 +912,7 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 		});
 		Grid.size = 72;
 
-		var Icon = GameObject.extend({
+		Icon = GameObject.extend({
 			constructor: function(opts) {
 				this.base(jQuery.extendIf(opts, {
 					width: Grid.size,
@@ -933,7 +933,7 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 			},
 		});
 
-		var Person = Icon.extend({
+		Person = Icon.extend({
 			constructor: function(opts) {
 				this.base(opts);
 		
@@ -992,7 +992,8 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 			}
 		});
 
-		var GamersTable = {
+		GamersTable = {
+			plugins: {},
 			registerScenario: function(name, setupFunction) {
 				$(document).ready(function() {
 					var scenariosMenuItem = window.addItemMenuButton.items.filter(function(i) {
@@ -1025,10 +1026,9 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 			},
 			addPlugin: function(url) {
 				$(document).ready(function() {
-					var scriptTag = document.createElement('script');
-					scriptTag.src = url;
-					var bodyTag = document.getElementsByTagName('body')[0];
-					bodyTag.appendChild( scriptTag );
+					require([url], function() {
+						if (GamersTable.plugins[url]) GamersTable.plugins[url]();
+					});
 				});
 			},
 			addPluginsFromQuery: function(search) {
@@ -1208,7 +1208,7 @@ require(["js/lib/base.js","js/lib/jquery/jquery.js"], function() {
 			document.write('<link rel="stylesheet" href="js/lib/jquery/qunit.css" type="text/css" media="screen" />');
 			document.write('<script src="js/lib/jquery/qunit.js"> </s' + 'cript>');
 	
-			$(document).ready(function() {
+			require.ready(function() {
 				var testResults = $('<div id="unit-test-results"></div>').prependTo($('body'));
 				testResults.append($('<h1 id="qunit-header">QUnit Tests</h1>'));  
 				testResults.append($('<h2 id="qunit-banner"></h2>'));
